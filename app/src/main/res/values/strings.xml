@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CampusCompass</string>
+    <string name="enter_button">Press to find location</string>
 </resources>
