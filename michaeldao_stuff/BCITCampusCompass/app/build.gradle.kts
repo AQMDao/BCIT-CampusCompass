@@ -72,6 +72,9 @@ dependencies {
      *   Add the Google Play Services dependency for the Maps SDK for Android
      */
     implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+    // zoom things
+    implementation("com.google.maps.android:android-maps-utils:0.4.4")
 }
 
 /*
