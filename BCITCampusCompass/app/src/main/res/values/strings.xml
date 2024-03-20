@@ -2,5 +2,4 @@
     <string name="app_name">BCIT CampusCompass</string>
     <string name="campus_select"> Select Campus</string>
     <string name="building_select"> Select Building</string>
-    <string name="floor_select"> Select Floor</string>
 </resources>

@@ -1,15 +1,32 @@
 package org.bcit.campuscompass;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Granularity;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
@@ -17,116 +34,142 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 
-import java.util.Dictionary;
-import java.util.List;
-import java.util.Objects;
+// TODO: add the map overlays accordingly
+// adding them is not the hard part and is already done in a previous version
+// BUT we need to:
+// continue to explore options to not have everything stored locally first (map images, local data, etc.)
+// have fun suffering trying to do this
+// TODO: add room markers for SW01
+// note would be best to do this while running the actual app on a physical phone probably for the geo coordinates
 
 // this activity is the start of our implementation for the application
-// for developers: used to debug and experiment implementations on for the campus level
-// for users: view and interact with a selected campus from google map activity
+// for developers: used to debug and experiment implementations at the campus level
+// for users: view and interact with the bcit burnaby campus
 public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCallback {
-    MapData campusMap;
-    MapData SW01_1 = new MapData("SW01_1", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 145, 0.25f);
-    MapData SW01_2 = new MapData("SW01_2", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 145, 0.25f);
-    MapData SW01_3 = new MapData("SW01_3", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 145, 0.25f);
-    MapData SW01_4 = new MapData("SW01_4", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 145, 0.25f);
-    MapData[] SW01 = {SW01_1, SW01_2, SW01_3, SW01_4};
-    String[] burnabyBuildingList = {"SW01"};
-    AutoCompleteTextView buildingAutoCompleteTextView;
-    ArrayAdapter<String> buildingAdapter;
-    Intent openBuildingActivity;
+    // local storage data
+    MapData burnabyCampus = new MapData("Burnaby", new LatLng(49.24814402642466 + 0.00011, -122.99923370291539 + 0.00010), 1150f, 0.25f);
+    String[] burnabyBuildingList = {"SW01", "SW02", "SW03", "SW05", "SW09"};
+    // location variables
+    FusedLocationProviderClient fusedLocationClient;
+    LocationCallback locationCallBack;
+    SettingsClient settingsClient;
+    LocationRequest locationRequest;
+    LocationSettingsRequest locationSettingsRequest;
+    Location lastLocation;
+    // check for location permissions from user
+    public void checkLocationPermissions() {
+        if (ContextCompat.checkSelfPermission(CampusMapActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(CampusMapActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                ActivityCompat.requestPermissions(CampusMapActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            } else {
+                ActivityCompat.requestPermissions(CampusMapActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            }
+        }
+    }
+    // start the location tracking
+    public void startLocationUpdating() {
+        // get the fused location provider client for the campus map activity
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(CampusMapActivity.this);
+        // get the client settings for the location services for the campus map activity
+        settingsClient = LocationServices.getSettingsClient(CampusMapActivity.this);
+        // create a location callback that runs when the location is determined
+        locationCallBack = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                receiveLocation(locationResult);
+            }
+        };
+        // configure settings for the actual location request including accuracy, minimum time/distance interval, etc.
+        locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000).setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL).setMinUpdateIntervalMillis(500).setMinUpdateDistanceMeters(1).setWaitForAccurateLocation(true).build();
+        // create a location request builder
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        // add the request to the builder
+        builder.addLocationRequest(locationRequest);
+        // set the location request settings with what the builder built
+        locationSettingsRequest = builder.build();
+        // start getting the device location according to the above settings
+        startLocationUpdates();
+    }
+    // stop location updates
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopLocationUpdates();
+    }
+    // start location updating depending the outcome of requesting permissions
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case 1:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(CampusMapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        startLocationUpdating();
+                    }
+                }
+                break;
+        }
+    }
+    // start location updating
+    @SuppressLint("MissingPermission")
+    private void startLocationUpdates() {
+        settingsClient.checkLocationSettings(locationSettingsRequest).addOnSuccessListener(locationSettingsResponse -> {
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallBack, Looper.myLooper());
+        }).addOnFailureListener(e -> {
+            int statusCode = ((ApiException) e).getStatusCode();
+        });
+    }
+    // stop location updating
+    public void stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallBack).addOnCompleteListener(task -> {});
+    }
+    private void receiveLocation(LocationResult locationResult) {
+        lastLocation = locationResult.getLastLocation();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_campus_map);
-        // create an instance of an auto complete text view for buildings
-        buildingAutoCompleteTextView = findViewById(R.id.building_auto_complete_text_view);
-        // check which campus we are coming from
-        Intent openCampusActivity = getIntent();
-        String campusSelected = openCampusActivity.getStringExtra("campusSelect");
-        // set the correct adapter to the auto complete text view for the buildings to select based on the campus selected
-        switch(Objects.requireNonNull(campusSelected)) {
-            case "Aerospace Technology":
-                break;
-            case "Annacis Island":
-                break;
-            case "Burnaby":
-                // create the adapter for the building auto complete text view and set it
-                buildingAdapter = new ArrayAdapter<String>(this, R.layout.list_items, burnabyBuildingList);
-                // get the map data for the campus selected
-                campusMap = openCampusActivity.getParcelableExtra("burnabyCampus");
-                break;
-            case "Centre for Applied Research and Innovation (CAR)":
-                break;
-            case "Downtown":
-                break;
-            case "Marine":
-                break;
-            default:
-                break;
-        }
+        // handle location permissions and set up user location tracking
+        checkLocationPermissions();
+        startLocationUpdating();
+
+        // create an instance of a building auto complete text view
+        AutoCompleteTextView buildingAutoCompleteTextView = findViewById(R.id.building_auto_complete_text_view);
+        // create the adapter for the building auto complete text view and set it
+        ArrayAdapter<String> buildingAdapter = new ArrayAdapter<String>(this, R.layout.list_items, burnabyBuildingList);
         buildingAutoCompleteTextView.setAdapter(buildingAdapter);
+        // set the building auto complete text view to listen for item clicks
         buildingAutoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String buildingSelect = parent.getItemAtPosition(position).toString();
-                switch(buildingSelect) {
-                    case "SW01":
-                        /*
-                        // create the intention to start the new building activity
-                        openBuildingActivity = new Intent(CampusMapActivity.this, BuildingMapActivity.class);
-                        // pass to the new building activity which building was selected and its map data
-                        openBuildingActivity.putExtra("Building Selected", buildingSelect);
-                        openBuildingActivity.putExtra("SW01_1 MapData", SW01_1);
-                        openBuildingActivity.putExtra("SW01_2 MapData", SW01_2);
-                        openBuildingActivity.putExtra("SW01_3 MapData", SW01_3);
-                        openBuildingActivity.putExtra("SW01_4 MapData", SW01_4);
-                        */
-                        break;
-                    case "SW02":
-                        break;
-                    case "SW03":
-                        break;
-                    case "SW05":
-                        break;
-                    case "SW09":
-                        break;
-                    default:
-                        break;
-                }
+                // create the intention to start the new building activity
+                Intent openBuildingActivity = new Intent(CampusMapActivity.this, BuildingMapActivity.class);
+                // pass to the new building activity which building was selected
+                openBuildingActivity.putExtra("buildingSelect", buildingSelect);
                 // start the new building activity
-                //CampusMapActivity.this.startActivity(openBuildingActivity);
+                CampusMapActivity.this.startActivity(openBuildingActivity);
             }
         });
-        // create a SupportMapFragment instance and add it to GoogleMapsActivity
-        GoogleMapOptions campusMapOptions = new GoogleMapOptions()
-                .mapType(GoogleMap.MAP_TYPE_NORMAL) // normal on debug, none on release
-                .zoomControlsEnabled(true)
-                .compassEnabled(false)
-                .zoomGesturesEnabled(true)
-                .scrollGesturesEnabled(true)
-                .rotateGesturesEnabled(true)
-                .tiltGesturesEnabled(true)
-                .zOrderOnTop(true)
-                .liteMode(false)
-                .mapToolbarEnabled(false)
-                .scrollGesturesEnabledDuringRotateOrZoom(true)
-                .ambientEnabled(true);
+
+        // create a GoogleMapOptions to pass into the SupportMapFragment so we can adjust Google map functionality as needed
+        GoogleMapOptions campusMapOptions = new GoogleMapOptions(); // currently on default settings
+        // create a SupportMapFragment instance and add it to this activity
         SupportMapFragment campusMapFragment = SupportMapFragment.newInstance(campusMapOptions);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.campus_map_fragment, campusMapFragment)
-                .commit();
+        getSupportFragmentManager().beginTransaction().add(R.id.campus_map_fragment, campusMapFragment).commit();
         // call getMapAsync() to set the callback on the map fragment
         campusMapFragment.getMapAsync(this);
     }
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        // move camera to selected campus
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(campusMap.getMapBounds(), 0));
-        float mapZoom = googleMap.getCameraPosition().zoom;
-        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(90).zoom(mapZoom).target(campusMap.getMapCenter()).build()));
+        // set padding to give space for our custom UI
+        googleMap.setPadding(0, 150, 0, 0);
+        // move camera to the burnaby campus in a *smart* fashion
+            // *smart*: auto calculate zoom level for making the map fully visible without cropping
+            // clearly it needs some work but google maps is not doing it for me -_-
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(burnabyCampus.getMapBounds(), 0));
+        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(90).zoom(googleMap.getCameraPosition().zoom).target(burnabyCampus.getMapCenter()).build()));
     }
 }
