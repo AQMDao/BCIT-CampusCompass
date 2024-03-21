@@ -28,7 +28,10 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -44,36 +47,14 @@ import com.google.android.material.button.MaterialButton;
 // for users: view and interact with the building selected from the campus map activity and its floors
 public class BuildingMapActivity extends AppCompatActivity implements OnMapReadyCallback {
     // local storage data
-    MapData SW01_1 = new MapData("SW01_1", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 145, 0.25f);
-    MapData SW01_2 = new MapData("SW01_2", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 145, 0.25f);
-    MapData SW01_3 = new MapData("SW01_3", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 145, 0.25f);
-    MapData SW01_4 = new MapData("SW01_4", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 145, 0.25f);
+    MapData SW01_1 = new MapData("SW01_1", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 224.0909090909f, 0f);
+    MapData SW01_2 = new MapData("SW01_2", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 224.0909090909f, 0f);
+    MapData SW01_3 = new MapData("SW01_3", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 224.0909090909f, 0f);
+    MapData SW01_4 = new MapData("SW01_4", new LatLng(49.25095038345488, -123.00279032907925 - 0.00006), 224.0909090909f, 0f);
     MapData[] SW01 = {SW01_1, SW01_2, SW01_3, SW01_4};
-    /*
-    MapData SW02_1;
-    MapData SW02_2;
-    MapData SW02_3;
-    MapData[] SW02 = {SW02_1, SW02_2, SW02_3};
-    MapData SW03_1;
-    MapData SW03_2;
-    MapData SW03_3;
-    MapData SW03_4;
-    MapData[] SW03 = {SW03_1, SW03_2, SW03_3, SW03_4};
-    MapData SW05_1;
-    MapData SW05_2;
-    MapData[] SW05 = {SW05_1, SW05_2};
-    MapData SW09_1;
-    MapData SW09_2;
-    MapData[] SW09 = {SW09_1, SW09_2};
-    */
-
-    String[] burnabyBuildingList = {
-            SW01_1.getMapName().split("_")[0]
-    };
-    // other variables
+    // variables
     List<MapData> buildingMaps;
     MapData floorMap;
-    String floorSelected;
     Intent openedBuildingActivity;
     // location variables
     FusedLocationProviderClient fusedLocationClient;
@@ -82,6 +63,12 @@ public class BuildingMapActivity extends AppCompatActivity implements OnMapReady
     LocationRequest locationRequest;
     LocationSettingsRequest locationSettingsRequest;
     Location lastLocation;
+    // google map variable
+    GoogleMap buildingMap;
+    // ground overlay variable
+    GroundOverlay mapOverlay;
+    // material toggle button group variable
+    MaterialButtonToggleGroup floorSelectGroup;
     // check for location permissions from user
     public void checkLocationPermissions() {
         if (ContextCompat.checkSelfPermission(BuildingMapActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -165,17 +152,16 @@ public class BuildingMapActivity extends AppCompatActivity implements OnMapReady
         String buildingSelected = openedBuildingActivity.getStringExtra("buildingSelect");
         // clear any existing maps in the building maps list
         buildingMaps = new ArrayList<MapData>();
-        // set the starting floor
-        floorSelected = "1";
         // fill the building map list based on the building selected and the starting floor map
-        MaterialButtonToggleGroup floorSelectGroup = findViewById(R.id.floor_select_group);
+        floorSelectGroup = findViewById(R.id.floor_select_group);
         switch(Objects.requireNonNull(buildingSelected)) {
             case "SW01":
                 buildingMaps = Arrays.asList(SW01);
-                floorMap = buildingMaps.get(Integer.parseInt(floorSelected) - 1);
-                for(int i = 1; i <= buildingMaps.size(); i++) {
+                floorMap = buildingMaps.get(0);
+                for (int i = 1; i <= buildingMaps.size(); i++) {
                     MaterialButton floorButton = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
                     floorButton.setText(String.valueOf(i));
+                    floorButton.setId(i);
                     floorButton.setBackgroundColor(getResources().getColor(R.color.white));
                     floorSelectGroup.addView(floorButton);
                 }
@@ -191,7 +177,8 @@ public class BuildingMapActivity extends AppCompatActivity implements OnMapReady
             default:
                 break;
         }
-        GoogleMapOptions buildingMapOptions = new GoogleMapOptions();
+        // google map stuff
+        GoogleMapOptions buildingMapOptions = new GoogleMapOptions().mapType(GoogleMap.MAP_TYPE_NONE).rotateGesturesEnabled(true).scrollGesturesEnabled(true).tiltGesturesEnabled(true).zoomGesturesEnabled(true).zoomControlsEnabled(true).compassEnabled(false);
         SupportMapFragment buildingMapFragment = SupportMapFragment.newInstance(buildingMapOptions);
         getSupportFragmentManager().beginTransaction().add(R.id.building_map_fragment, buildingMapFragment).commit();
         buildingMapFragment.getMapAsync(this);
@@ -199,10 +186,33 @@ public class BuildingMapActivity extends AppCompatActivity implements OnMapReady
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        // set padding for our own interface
-        googleMap.setPadding(0, 150, 0, 0);
-        // move to selected building
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(floorMap.getMapBounds(), 0));
-        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(90).zoom(googleMap.getCameraPosition().zoom).target(floorMap.getMapCenter()).build()));
+        // set buildingMap to the googleMap
+        buildingMap = googleMap;
+        // move camera to the burnaby campus in a smart fashion (zoomed out until full map is displayed)
+        buildingMap.moveCamera(CameraUpdateFactory.newLatLngBounds(floorMap.getMapBounds(), 0));
+        buildingMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().zoom(buildingMap.getCameraPosition().zoom).target(floorMap.getMapCenter()).bearing(90f).build()));
+        // setting the floor select group listener in OnMapReady because it involves adding GroundOverlays
+        floorSelectGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
+            @Override
+            public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked) {
+                if (isChecked) {
+                    for (int i = 1; i <= buildingMaps.size(); i++) {
+                        if (checkedId == i) {
+                            // set the floor map to the correct floor plan
+                            floorMap = buildingMaps.get(i - 1);
+                            // move camera to the burnaby campus in a smart fashion (zoomed out until full map is displayed)
+                            buildingMap.moveCamera(CameraUpdateFactory.newLatLngBounds(floorMap.getMapBounds(), 0));
+                            buildingMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().zoom(buildingMap.getCameraPosition().zoom).target(floorMap.getMapCenter()).bearing(90f).build()));
+                            // add the floor overlay
+                            if(mapOverlay != null) {
+                                mapOverlay.remove();
+                            }
+                            @SuppressLint("DiscouragedApi") int buildingFloorResourceId = BuildingMapActivity.this.getResources().getIdentifier(floorMap.getMapName().toLowerCase(), "drawable", BuildingMapActivity.this.getPackageName());
+                            mapOverlay = buildingMap.addGroundOverlay(new GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(buildingFloorResourceId)).position(floorMap.getMapCenter(), floorMap.getMapWidth()).bearing(90f).transparency(floorMap.getMapTransparency()));
+                        }
+                    }
+                }
+            }
+        });
     }
 }

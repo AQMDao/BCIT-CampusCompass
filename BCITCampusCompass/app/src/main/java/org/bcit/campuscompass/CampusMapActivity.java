@@ -4,10 +4,15 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -32,24 +37,24 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 
-// TODO: add the map overlays accordingly
-// adding them is not the hard part and is already done in a previous version
-// BUT we need to:
-// continue to explore options to not have everything stored locally first (map images, local data, etc.)
-// have fun suffering trying to do this
 // TODO: add room markers for SW01
 // note would be best to do this while running the actual app on a physical phone probably for the geo coordinates
+// TODO: database stuff eddie please try to finish it this week btw
 
 // this activity is the start of our implementation for the application
 // for developers: used to debug and experiment implementations at the campus level
 // for users: view and interact with the bcit burnaby campus
 public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCallback {
     // local storage data
-    MapData burnabyCampus = new MapData("Burnaby", new LatLng(49.24814402642466 + 0.00011, -122.99923370291539 + 0.00010), 1150f, 0.25f);
+    MapData burnabyCampus = new MapData("burnaby_campus", new LatLng(49.24814402642466 + 0.00011, -122.99923370291539 + 0.00010), 1533.3333333333f, 0f);
     String[] burnabyBuildingList = {"SW01", "SW02", "SW03", "SW05", "SW09"};
+    // google map variable
+    GoogleMap campusMap;
     // location variables
     FusedLocationProviderClient fusedLocationClient;
     LocationCallback locationCallBack;
@@ -134,7 +139,6 @@ public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCa
         // handle location permissions and set up user location tracking
         checkLocationPermissions();
         startLocationUpdating();
-
         // create an instance of a building auto complete text view
         AutoCompleteTextView buildingAutoCompleteTextView = findViewById(R.id.building_auto_complete_text_view);
         // create the adapter for the building auto complete text view and set it
@@ -153,9 +157,8 @@ public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCa
                 CampusMapActivity.this.startActivity(openBuildingActivity);
             }
         });
-
         // create a GoogleMapOptions to pass into the SupportMapFragment so we can adjust Google map functionality as needed
-        GoogleMapOptions campusMapOptions = new GoogleMapOptions(); // currently on default settings
+        GoogleMapOptions campusMapOptions = new GoogleMapOptions().mapType(GoogleMap.MAP_TYPE_NONE).rotateGesturesEnabled(true).scrollGesturesEnabled(true).tiltGesturesEnabled(true).zoomGesturesEnabled(true).zoomControlsEnabled(true).compassEnabled(false); // currently on default settings
         // create a SupportMapFragment instance and add it to this activity
         SupportMapFragment campusMapFragment = SupportMapFragment.newInstance(campusMapOptions);
         getSupportFragmentManager().beginTransaction().add(R.id.campus_map_fragment, campusMapFragment).commit();
@@ -164,12 +167,13 @@ public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCa
     }
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        // set padding to give space for our custom UI
-        googleMap.setPadding(0, 150, 0, 0);
-        // move camera to the burnaby campus in a *smart* fashion
-            // *smart*: auto calculate zoom level for making the map fully visible without cropping
-            // clearly it needs some work but google maps is not doing it for me -_-
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(burnabyCampus.getMapBounds(), 0));
-        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(90).zoom(googleMap.getCameraPosition().zoom).target(burnabyCampus.getMapCenter()).build()));
+        // assign our campusMap the googleMap when its ready
+        campusMap = googleMap;
+        // move camera to the burnaby campus in a smart fashion (zoomed out until full map is displayed)
+        campusMap.moveCamera(CameraUpdateFactory.newLatLngBounds(burnabyCampus.getMapBounds(), 0));
+        campusMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().zoom(googleMap.getCameraPosition().zoom).target(burnabyCampus.getMapCenter()).bearing(90f).build()));
+        // add the campus map
+        @SuppressLint("DiscouragedApi") int burnabyCampusResourceId = CampusMapActivity.this.getResources().getIdentifier(burnabyCampus.getMapName(), "drawable", CampusMapActivity.this.getPackageName());
+        campusMap.addGroundOverlay(new GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(burnabyCampusResourceId)).position(burnabyCampus.getMapCenter(), burnabyCampus.getMapWidth()).bearing(90f).transparency(burnabyCampus.getMapTransparency()));
     }
 }
