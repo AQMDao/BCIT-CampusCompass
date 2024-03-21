@@ -160,9 +160,8 @@ public class BuildingMapActivity extends AppCompatActivity implements OnMapReady
                 floorMap = buildingMaps.get(0);
                 for (int i = 1; i <= buildingMaps.size(); i++) {
                     MaterialButton floorButton = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-                    floorButton.setText(String.valueOf(i));
                     floorButton.setId(i);
-                    floorButton.setBackgroundColor(getResources().getColor(R.color.white));
+                    floorButton.setText(String.valueOf(i));
                     floorSelectGroup.addView(floorButton);
                 }
                 break;
@@ -198,12 +197,9 @@ public class BuildingMapActivity extends AppCompatActivity implements OnMapReady
                 if (isChecked) {
                     for (int i = 1; i <= buildingMaps.size(); i++) {
                         if (checkedId == i) {
+
                             // set the floor map to the correct floor plan
                             floorMap = buildingMaps.get(i - 1);
-                            // move camera to the burnaby campus in a smart fashion (zoomed out until full map is displayed)
-                            buildingMap.moveCamera(CameraUpdateFactory.newLatLngBounds(floorMap.getMapBounds(), 0));
-                            buildingMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().zoom(buildingMap.getCameraPosition().zoom).target(floorMap.getMapCenter()).bearing(90f).build()));
-                            // add the floor overlay
                             if(mapOverlay != null) {
                                 mapOverlay.remove();
                             }

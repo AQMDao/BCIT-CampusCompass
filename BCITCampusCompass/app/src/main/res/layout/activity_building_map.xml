@@ -19,5 +19,5 @@
         app:layout_constraintTop_toTopOf="parent"
         android:id="@+id/floor_select_group"
         app:singleSelection="true"
-        app:selectionRequired="true"/>
+        app:selectionRequired="true" />
 </androidx.constraintlayout.widget.ConstraintLayout>

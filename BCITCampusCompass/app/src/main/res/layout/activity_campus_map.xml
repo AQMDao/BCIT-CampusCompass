@@ -16,7 +16,6 @@
         android:layout_height="wrap_content"
         android:id="@+id/building_text_input_layout"
         android:hint="@string/building_select"
-        app:boxBackgroundColor="@color/design_default_color_background"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">

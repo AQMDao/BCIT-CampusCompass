@@ -41,6 +41,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 // TODO: add room markers for SW01
 // note would be best to do this while running the actual app on a physical phone probably for the geo coordinates
@@ -62,6 +64,9 @@ public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCa
     LocationRequest locationRequest;
     LocationSettingsRequest locationSettingsRequest;
     Location lastLocation;
+    // marker variables
+    Marker userMarker;
+
     // check for location permissions from user
     public void checkLocationPermissions() {
         if (ContextCompat.checkSelfPermission(CampusMapActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -72,6 +77,7 @@ public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCa
             }
         }
     }
+
     // start the location tracking
     public void startLocationUpdating() {
         // get the fused location provider client for the campus map activity
@@ -96,12 +102,14 @@ public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCa
         // start getting the device location according to the above settings
         startLocationUpdates();
     }
+
     // stop location updates
     @Override
     protected void onDestroy() {
         super.onDestroy();
         stopLocationUpdates();
     }
+
     // start location updating depending the outcome of requesting permissions
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -116,6 +124,7 @@ public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCa
                 break;
         }
     }
+
     // start location updating
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
@@ -125,13 +134,24 @@ public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCa
             int statusCode = ((ApiException) e).getStatusCode();
         });
     }
+
     // stop location updating
     public void stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallBack).addOnCompleteListener(task -> {});
+        fusedLocationClient.removeLocationUpdates(locationCallBack).addOnCompleteListener(task -> {
+        });
     }
+
     private void receiveLocation(LocationResult locationResult) {
         lastLocation = locationResult.getLastLocation();
+        // add user location marker and update it on new location received
+        if (userMarker != null) {
+            userMarker.remove();
+        }
+        if (lastLocation != null) {
+            userMarker = campusMap.addMarker(new MarkerOptions().title("User").position(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude())));
+        }
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -158,13 +178,14 @@ public class CampusMapActivity extends AppCompatActivity implements OnMapReadyCa
             }
         });
         // create a GoogleMapOptions to pass into the SupportMapFragment so we can adjust Google map functionality as needed
-        GoogleMapOptions campusMapOptions = new GoogleMapOptions().mapType(GoogleMap.MAP_TYPE_NONE).rotateGesturesEnabled(true).scrollGesturesEnabled(true).tiltGesturesEnabled(true).zoomGesturesEnabled(true).zoomControlsEnabled(true).compassEnabled(false); // currently on default settings
+        GoogleMapOptions campusMapOptions = new GoogleMapOptions().mapType(GoogleMap.MAP_TYPE_NONE).rotateGesturesEnabled(true).scrollGesturesEnabled(true).tiltGesturesEnabled(true).zoomControlsEnabled(true).compassEnabled(false);
         // create a SupportMapFragment instance and add it to this activity
         SupportMapFragment campusMapFragment = SupportMapFragment.newInstance(campusMapOptions);
         getSupportFragmentManager().beginTransaction().add(R.id.campus_map_fragment, campusMapFragment).commit();
         // call getMapAsync() to set the callback on the map fragment
         campusMapFragment.getMapAsync(this);
     }
+
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         // assign our campusMap the googleMap when its ready
