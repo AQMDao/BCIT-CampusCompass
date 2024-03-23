@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- Enable access to user's location -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <!-- Enable access to the internet for... not really sure yet... -->
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:allowBackup="true"
@@ -16,26 +19,44 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BCITCampusCompass"
         tools:targetApi="31">
+
         <activity
-            android:name=".BuildingMapActivity"
-            android:exported="false" />
-        <activity
-            android:name=".CampusMapActivity"
-            android:exported="true" >
+            android:name=".MainActivity"
+            android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!--
+            Note: com.google.android.geo.API_KEY is the recommended metadata name for the API key.
+            A key with this name can be used to authenticate to multiple Google Maps-based APIs on
+            the Android platform, including the Maps SDK for Android. For backwards compatibility,
+            the API also supports the name com.google.android.maps.v2.API_KEY. This legacy name
+            allows authentication to the Android Maps API v2 only. An application can specify only
+            one of the API key metadata names. If both are specified, the API throws an exception.
+        -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-    </application>
+        <!--
+            If you are using com.google.android.gms:play-services-maps:16.0.0 or below and your
+            app is targeting API level 28 (Android 9.0) or above, you must include the following
+            declaration within the <application> element of AndroidManifest.xml. Otherwise, skip
+            this declaration.
 
+            Question: Are we using com.google.android.gms:play-services-maps:16.0.0 or below?
+            Answer: No.
+        -->
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
+    </application>
 </manifest>
