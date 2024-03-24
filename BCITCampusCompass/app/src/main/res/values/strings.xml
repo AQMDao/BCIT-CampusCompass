@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">BCIT CampusCompass</string>
-    <string name="home_menu">Home</string>
-    <string name="profile_menu">Profile</string>
-    <string name="search_menu">Map</string>
-    <string name="settings_menu">Settings</string>
+    <string name="home_navigation">Home</string>
+    <string name="profile_navigation">Profile</string>
+    <string name="map_navigation">Map</string>
+    <string name="settings_navigation">Settings</string>
+
 </resources>

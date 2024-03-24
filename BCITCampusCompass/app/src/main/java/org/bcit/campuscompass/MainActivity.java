@@ -28,21 +28,14 @@
 package org.bcit.campuscompass;
 
 import android.os.Bundle;
-import android.provider.Settings;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.Lifecycle;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationBarView;
 
 import org.bcit.campuscompass.databinding.ActivityMainBinding;
 
@@ -104,13 +97,13 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.hide(settingsFragment);
         fragmentTransaction.commit();
 
-        activityMainBinding.mainBnv.setSelectedItemId(R.id.home_navigation_button);
+        activityMainBinding.mainBnv.setSelectedItemId(R.id.home_navigation);
 
         activityMainBinding.mainBnv.setOnItemSelectedListener(item -> {
-            if(item.getItemId() == R.id.home_navigation_button) showFragment(homeFragment);
-            if(item.getItemId() == R.id.profile_navigation_button) showFragment(profileFragment);
-            if(item.getItemId() == R.id.map_navigation_button) showFragment(mapFragment);
-            if(item.getItemId() == R.id.settings_navigation_button) showFragment(settingsFragment);
+            if(item.getItemId() == R.id.home_navigation) showFragment(homeFragment);
+            if(item.getItemId() == R.id.profile_navigation) showFragment(profileFragment);
+            if(item.getItemId() == R.id.map_navigation) showFragment(mapFragment);
+            if(item.getItemId() == R.id.settings_navigation) showFragment(settingsFragment);
             return true;
         });
     }
@@ -128,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                             closeExpandFab();
                         }
                         else {
-                            openMainFAB(fragment);
+                            openExpandFab(fragment);
                         }
                     }
                 }
@@ -140,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
         for (Fragment fragment : fragmentManager.getFragments()) {
             if(fragment == fragmentToShow) {
                 fragmentTransaction.show(fragment);
+                if (clickedExpandFab) openExpandFab(fragment);
             }
             else {
                 fragmentTransaction.hide(fragment);
@@ -158,8 +152,8 @@ public class MainActivity extends AppCompatActivity {
         activityMainBinding.expandFab.animate().rotation(0);
         clickedExpandFab = false;
     }
-    private void openMainFAB(Fragment fragment) {
-
+    private void openExpandFab(Fragment fragment) {
+        hideAllFabs();
         if(fragment instanceof HomeFragment) {
         }
         if(fragment instanceof ProfileFragment) {
@@ -171,10 +165,10 @@ public class MainActivity extends AppCompatActivity {
         }
         if(fragment instanceof SettingsFragment) {
         }
-        activityMainBinding.expandFab.animate().rotation(135f);
+        activityMainBinding.expandFab.animate().rotation(225f);
         clickedExpandFab = true;
     }
     public FloatingActionButton[] getMapFabButtons() {
-        return new FloatingActionButton[] {activityMainBinding.centerMapFab, activityMainBinding.toggleLocationFab};
+        return new FloatingActionButton[] {activityMainBinding.centerMapFab, activityMainBinding.focusBuildingFab, activityMainBinding.toggleLocationFab};
     }
 }

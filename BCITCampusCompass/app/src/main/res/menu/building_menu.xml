@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/bcit"
+        android:title="Campus Map" >
+        <menu>
+            <item
+                android:id="@+id/bcit_whole"
+                android:title="Overview"/>
+            <item
+                android:id="@+id/bcit_sw01"
+                android:title="SW01"/>
+            <item
+                android:id="@+id/bcit_sw03"
+                android:title="SW03"/>
+        </menu>
+    </item>
+    <item
+        android:id="@+id/indoors"
+        android:title="Indoor Maps" >
+        <menu>
+            <item
+                android:id="@+id/indoor_sw01"
+                android:title="SW01">
+                <menu>
+                    <item
+                        android:id="@+id/sw01_1"
+                        android:title="Floor 1" />
+                    <item
+                        android:id="@+id/sw01_2"
+                        android:title="Floor 2" />
+                    <item
+                        android:id="@+id/sw01_3"
+                        android:title="Floor 3" />
+                    <item
+                        android:id="@+id/sw01_4"
+                        android:title="Floor 4" />
+                </menu>
+            </item>
+            <item
+                android:id="@+id/indoor_sw03"
+                android:title="SW03">
+                <menu>
+                    <item
+                        android:id="@+id/sw03_1"
+                        android:title="Floor 1" />
+                    <item
+                        android:id="@+id/sw03_2"
+                        android:title="Floor 2" />
+                    <item
+                        android:id="@+id/sw03_3"
+                        android:title="Floor 3" />
+                    <item
+                        android:id="@+id/sw03_4"
+                        android:title="Floor 4" />
+                </menu>
+            </item>
+        </menu>
+    </item>
+</menu>
