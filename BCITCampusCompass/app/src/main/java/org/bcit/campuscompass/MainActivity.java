@@ -28,6 +28,7 @@
 package org.bcit.campuscompass;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -46,48 +47,47 @@ import com.google.android.material.navigation.NavigationBarView;
 import org.bcit.campuscompass.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
-    // Local Data (to be accessed via SQLite database when implemented)
+    /* LOCAL DATA */
+    // any local data that is hard stored into the app, will remove upon integration with sqlite
 
-    // Fragments
-    Fragment homeFragment;
-    Fragment profileFragment;
-    Fragment mapFragment;
-    Fragment settingsFragment;
+    /* MEMBERS */
 
-    FragmentManager fragmentManager;
-    FragmentTransaction fragmentTransaction;
+    // Binding
+    private ActivityMainBinding activityMainBinding;
 
-    BottomNavigationView bottomNavigationView;
+    // Fragment
+    private FragmentManager fragmentManager;
+    private FragmentTransaction fragmentTransaction;
+    private HomeFragment homeFragment;
+    private ProfileFragment profileFragment;
+    private MapFragment mapFragment;
+    private SettingsFragment settingsFragment;
 
-    // binding
-    private ActivityMainBinding binding;
-    // fab menu
-    private boolean isFloatingActionButtonExpanded = false;
+    // Floating Action Button (FAB)
+    private boolean clickedExpandFab= false;
 
+    // Listeners
+    private View.OnClickListener expandFabOnClickListener;
 
+    /* METHODS */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
+        initializeBinding();
         initializeFragments();
+        initializeExpandFab();
+        initializeFabs();
 
-        binding.mapCenterFloatingActionButton.hide();
-        binding.mapLocationFloatingActionButton.hide();
-
-        binding.mainFloatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                expandFloatingActionButtonMenu();
-            }
-        });
+        activityMainBinding.expandFab.setOnClickListener(expandFabOnClickListener);
     }
 
+    /* HELPER FUNCTIONS */
+    private void initializeBinding() {
+        activityMainBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(activityMainBinding.getRoot());
+    }
     private void initializeFragments() {
-        bottomNavigationView = findViewById(R.id.bottom_navigation_view);
-
         homeFragment = new HomeFragment();
         profileFragment = new ProfileFragment();
         mapFragment = new MapFragment();
@@ -95,37 +95,48 @@ public class MainActivity extends AppCompatActivity {
 
         fragmentManager = getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.add(R.id.main_constraint_layout, homeFragment);
-        fragmentTransaction.show(homeFragment);
-        fragmentTransaction.add(R.id.main_constraint_layout,profileFragment);
+        fragmentTransaction.add(R.id.main_cl, homeFragment);
+        fragmentTransaction.add(R.id.main_cl,profileFragment);
+        fragmentTransaction.add(R.id.main_cl,mapFragment);
+        fragmentTransaction.add(R.id.main_cl,settingsFragment);
         fragmentTransaction.hide(profileFragment);
-        fragmentTransaction.add(R.id.main_constraint_layout,mapFragment);
         fragmentTransaction.hide(mapFragment);
-        fragmentTransaction.add(R.id.main_constraint_layout,settingsFragment);
         fragmentTransaction.hide(settingsFragment);
         fragmentTransaction.commit();
 
-        bottomNavigationView.setSelectedItemId(R.id.home_navigation_button);
+        activityMainBinding.mainBnv.setSelectedItemId(R.id.home_navigation_button);
 
-        bottomNavigationView.setOnItemSelectedListener(item -> {
-            if(item.getItemId() == R.id.home_navigation_button) {
-                showFragment(homeFragment);
-            }
-            if(item.getItemId() == R.id.profile_navigation_button) {
-                showFragment(profileFragment);
-            }
-            if(item.getItemId() == R.id.map_navigation_button) {
-                showFragment(mapFragment);
-            }
-            if(item.getItemId() == R.id.settings_navigation_button) {
-                showFragment(settingsFragment);
-            }
+        activityMainBinding.mainBnv.setOnItemSelectedListener(item -> {
+            if(item.getItemId() == R.id.home_navigation_button) showFragment(homeFragment);
+            if(item.getItemId() == R.id.profile_navigation_button) showFragment(profileFragment);
+            if(item.getItemId() == R.id.map_navigation_button) showFragment(mapFragment);
+            if(item.getItemId() == R.id.settings_navigation_button) showFragment(settingsFragment);
             return true;
         });
     }
+    private void initializeExpandFab() {
+        clickedExpandFab = false;
+        hideAllFabs();
+    }
+    private void initializeFabs() {
+        expandFabOnClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                for (Fragment fragment : fragmentManager.getFragments()) {
+                    if (fragment.isVisible()) {
+                        if(clickedExpandFab) {
+                            closeExpandFab();
+                        }
+                        else {
+                            openMainFAB(fragment);
+                        }
+                    }
+                }
+            }
+        };
+    }
     private void showFragment(Fragment fragmentToShow) {
         fragmentTransaction = fragmentManager.beginTransaction();
-
         for (Fragment fragment : fragmentManager.getFragments()) {
             if(fragment == fragmentToShow) {
                 fragmentTransaction.show(fragment);
@@ -136,21 +147,34 @@ public class MainActivity extends AppCompatActivity {
         }
         fragmentTransaction.commit();
     }
+    private void hideAllFabs() {
+        activityMainBinding.centerMapFab.hide();
+        activityMainBinding.focusBuildingFab.hide();
+        activityMainBinding.toggleLocationFab.hide();
 
-    private void expandFloatingActionButtonMenu() {
-        if(isFloatingActionButtonExpanded) {
-            isFloatingActionButtonExpanded = false;
-            binding.mainFloatingActionButton.animate().rotationBy(-45f);
+    }
+    private void closeExpandFab() {
+        hideAllFabs();
+        activityMainBinding.expandFab.animate().rotation(0);
+        clickedExpandFab = false;
+    }
+    private void openMainFAB(Fragment fragment) {
 
-            binding.mapCenterFloatingActionButton.hide();
-            binding.mapLocationFloatingActionButton.hide();
+        if(fragment instanceof HomeFragment) {
         }
-        else {
-            isFloatingActionButtonExpanded = true;
-            binding.mainFloatingActionButton.animate().rotationBy(45f);
-
-            binding.mapCenterFloatingActionButton.show();
-            binding.mapLocationFloatingActionButton.show();
+        if(fragment instanceof ProfileFragment) {
         }
+        if(fragment instanceof MapFragment) {
+            activityMainBinding.centerMapFab.show();
+            activityMainBinding.focusBuildingFab.show();
+            activityMainBinding.toggleLocationFab.show();
+        }
+        if(fragment instanceof SettingsFragment) {
+        }
+        activityMainBinding.expandFab.animate().rotation(135f);
+        clickedExpandFab = true;
+    }
+    public FloatingActionButton[] getMapFabButtons() {
+        return new FloatingActionButton[] {activityMainBinding.centerMapFab, activityMainBinding.toggleLocationFab};
     }
 }

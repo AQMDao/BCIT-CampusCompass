@@ -7,10 +7,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:id="@+id/main_constraint_layout">
+    android:id="@+id/main_cl">
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_view"
+        android:id="@+id/main_bnv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="4dp"
@@ -23,26 +23,26 @@
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/main_floating_action_button"
+        android:id="@+id/expand_fab"
         style="@style/Widget.Design.FloatingActionButton"
         android:contentDescription="@null"
         android:src="@drawable/rounded_add_24"
         app:fabSize="normal"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view"
-        app:layout_constraintEnd_toEndOf="@id/bottom_navigation_view"
+        app:layout_constraintBottom_toTopOf="@id/main_bnv"
+        app:layout_constraintEnd_toEndOf="@id/main_bnv"
         android:layout_margin="15dp"
-        app:maxImageSize="40dp"
+        app:maxImageSize="50dp"
         />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/map_center_floating_action_button"
+        android:id="@+id/center_map_fab"
         style="@style/Widget.Design.FloatingActionButton"
         android:contentDescription="@null"
         android:src="@drawable/rounded_center_focus_strong_24"
         app:fabSize="mini"
-        app:layout_constraintCircle="@id/main_floating_action_button"
+        app:layout_constraintCircle="@id/expand_fab"
         app:layout_constraintCircleAngle="0"
         app:layout_constraintCircleRadius="60dp"
         tools:ignore="MissingConstraints" />
@@ -50,14 +50,28 @@
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/map_location_floating_action_button"
+        android:id="@+id/focus_building_fab"
         style="@style/Widget.Design.FloatingActionButton"
         android:contentDescription="@null"
         android:src="@drawable/rounded_feature_search_24"
         app:fabSize="mini"
-        app:layout_constraintCircle="@id/main_floating_action_button"
+        app:layout_constraintCircle="@id/expand_fab"
         app:layout_constraintCircleAngle="315"
         app:layout_constraintCircleRadius="60dp"
         tools:ignore="MissingConstraints" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/toggle_location_fab"
+        style="@style/Widget.Design.FloatingActionButton"
+        android:contentDescription="@null"
+        android:src="@drawable/rounded_location_on_24"
+        app:fabSize="mini"
+        app:layout_constraintCircle="@id/expand_fab"
+        app:layout_constraintCircleAngle="270"
+        app:layout_constraintCircleRadius="60dp"
+        tools:ignore="MissingConstraints" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
 
