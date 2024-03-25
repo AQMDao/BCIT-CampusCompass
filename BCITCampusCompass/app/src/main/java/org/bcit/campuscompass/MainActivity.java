@@ -27,15 +27,20 @@
 
 package org.bcit.campuscompass;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationBarView;
 
 import org.bcit.campuscompass.databinding.ActivityMainBinding;
 
@@ -45,10 +50,10 @@ public class MainActivity extends AppCompatActivity {
 
     /* MEMBERS */
 
-    // Binding
+    // Main Activity Binding
     private ActivityMainBinding activityMainBinding;
 
-    // Fragment
+    // Navigation Fragments, Manager, and Transaction
     private FragmentManager fragmentManager;
     private FragmentTransaction fragmentTransaction;
     private HomeFragment homeFragment;
@@ -56,10 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private MapFragment mapFragment;
     private SettingsFragment settingsFragment;
 
-    // Floating Action Button (FAB)
-    private boolean clickedExpandFab= false;
-
-    // Listeners
+    // Expand Floating Action Button
+    private boolean clickedExpandFab;
     private View.OnClickListener expandFabOnClickListener;
 
     /* METHODS */
@@ -70,9 +73,8 @@ public class MainActivity extends AppCompatActivity {
         initializeBinding();
         initializeFragments();
         initializeExpandFab();
-        initializeFabs();
 
-        activityMainBinding.expandFab.setOnClickListener(expandFabOnClickListener);
+        makeToast(MainActivity.this, "Binding, Fragments, FABs, all initialized.");
     }
 
     /* HELPER FUNCTIONS */
@@ -99,19 +101,28 @@ public class MainActivity extends AppCompatActivity {
 
         activityMainBinding.mainBnv.setSelectedItemId(R.id.home_navigation);
 
-        activityMainBinding.mainBnv.setOnItemSelectedListener(item -> {
-            if(item.getItemId() == R.id.home_navigation) showFragment(homeFragment);
-            if(item.getItemId() == R.id.profile_navigation) showFragment(profileFragment);
-            if(item.getItemId() == R.id.map_navigation) showFragment(mapFragment);
-            if(item.getItemId() == R.id.settings_navigation) showFragment(settingsFragment);
-            return true;
+        activityMainBinding.mainBnv.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                if(item.getItemId() == R.id.home_navigation)
+                    showFragment(homeFragment);
+                if(item.getItemId() == R.id.profile_navigation)
+                    showFragment(profileFragment);
+                if(item.getItemId() == R.id.map_navigation)
+                    showFragment(mapFragment);
+                if(item.getItemId() == R.id.settings_navigation)
+                    showFragment(settingsFragment);
+                return true;
+            }
         });
     }
     private void initializeExpandFab() {
         clickedExpandFab = false;
-        hideAllFabs();
+        hideAllFab();
+        initializeAllFab();
+        activityMainBinding.expandFab.setOnClickListener(expandFabOnClickListener);
     }
-    private void initializeFabs() {
+    private void initializeAllFab() {
         expandFabOnClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -141,19 +152,19 @@ public class MainActivity extends AppCompatActivity {
         }
         fragmentTransaction.commit();
     }
-    private void hideAllFabs() {
+    private void hideAllFab() {
         activityMainBinding.centerMapFab.hide();
         activityMainBinding.focusBuildingFab.hide();
         activityMainBinding.toggleLocationFab.hide();
 
     }
     private void closeExpandFab() {
-        hideAllFabs();
+        hideAllFab();
         activityMainBinding.expandFab.animate().rotation(0);
         clickedExpandFab = false;
     }
     private void openExpandFab(Fragment fragment) {
-        hideAllFabs();
+        hideAllFab();
         if(fragment instanceof HomeFragment) {
         }
         if(fragment instanceof ProfileFragment) {
@@ -170,5 +181,8 @@ public class MainActivity extends AppCompatActivity {
     }
     public FloatingActionButton[] getMapFabButtons() {
         return new FloatingActionButton[] {activityMainBinding.centerMapFab, activityMainBinding.focusBuildingFab, activityMainBinding.toggleLocationFab};
+    }
+    private void makeToast(Context context, CharSequence message) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 }

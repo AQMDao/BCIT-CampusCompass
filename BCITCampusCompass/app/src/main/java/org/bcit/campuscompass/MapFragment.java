@@ -6,7 +6,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -16,6 +15,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.GroundOverlay;
@@ -24,76 +24,46 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.util.Objects;
-
-public class MapFragment extends Fragment {
+public class MapFragment extends Fragment implements OnMapReadyCallback {
     /* LOCAL DATA */
 
-    // BCIT
-    double[] bcit_North = {49, 15, 10.42};
-    double[] bcit_South = {49, 14, 36.89};
-    double[] bcit_East = {-122, -59, -28.33};
-    double[] bcit_West = {-123, -0, -47.94};
-    float bcit_Bearing = 90;
+    // Burnaby Campus
+    MapData burnabyCampus;
 
     // SW01_1
-    double[] sw01_1_North = {49, 15, 5.67};
-    double[] sw01_1_South = {49, 15, 1.10};
-    double[] sw01_1_East = {-123, -0, -4.81};
-    double[] sw01_1_West = {-123, -0, -15.54};
-    float sw01_1_Bearing = 90.4743f;
+    MapData sw01_1;
 
     // SW01_2
-    double[] sw01_2_North = {49, 15, 5.36};
-    double[] sw01_2_South = {49, 15, 1.11};
-    double[] sw01_2_East = {-123, -0, -5.13};
-    double[] sw01_2_West = {-123, -0, -15.22};
-    float sw01_2_Bearing = 90.3857f;
+    MapData sw01_2;
 
     // SW01_3
-    double[] sw01_3_North = {49, 15, 5.72};
-    double[] sw01_3_South = {49, 15, 1.19};
-    double[] sw01_3_East = {-123, -0, -5.10};
-    double[] sw01_3_West = {-123, -0, -15.80};
-    float sw01_3_Bearing = 90.4109f;
+    MapData sw01_3;
 
     // SW01_4
-    double[] sw01_4_North = {49, 15, 5.81};
-    double[] sw01_4_South = {49, 15, 1.26};
-    double[] sw01_4_East = {-123, -0, -4.99};
-    double[] sw01_4_West = {-123, -0, -15.72};
-    float sw01_4_Bearing = 90.3929f;
+    MapData sw01_4;
 
     /* MEMBERS */
 
-    // GoogleMap
-    private GoogleMap campusGoogleMap;
+    // Google Maps
+    private GoogleMap googleMap;
 
-    // OnMapReadyCallback
-    private OnMapReadyCallback onMapReadyCallback;
-
-    // Ground Overlay
-    private GroundOverlayOptions bcitOverlayOptions;
-    private GroundOverlayOptions sw01_1_OverlayOptions;
-    private GroundOverlayOptions sw01_2_OverlayOptions;
-    private GroundOverlayOptions sw01_3_OverlayOptions;
-    private GroundOverlayOptions sw01_4_OverlayOptions;
+    // Our Map
+    private MapData currentMapData;
+    private MapData nextMapData;
     private GroundOverlay mapOverlay;
 
-    // LatLng
-    private LatLngBounds mapBounds;
-
     // Floating Action Buttons
-    FloatingActionButton[] mapFabButtons;
-
-    // Listeners
-    private View.OnClickListener centerMapFabOcl;
-    private View.OnClickListener buildingFabOcl;
-    private View.OnClickListener toggleLocationFabOnClickListener;
+    FloatingActionButton[] mapFabs;
 
     // Popup Menu
-    PopupMenu buildingPum;
-    PopupMenu.OnMenuItemClickListener buildingPumOmicl;
+    PopupMenu mapPum;
+
+    // Zoom
+    private float zoom;
+
+    // TEST
+
+    private GoogleMap.CancelableCallback test;
 
     /* METHODS */
 
@@ -101,144 +71,219 @@ public class MapFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Initialize the view
         View view = inflater.inflate(R.layout.fragment_map, container, false);
-        initializeGoogleMaps();
-        return view;
-    }
-    private void initializeOnMapReadyCallback() {
-        onMapReadyCallback = new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(@NonNull GoogleMap googleMap) {
-                campusGoogleMap = googleMap;
-                initializeGroundOverlays();
-                initializeMapFabOcls();
-            }
-        };
-    }
 
-    /* HELPER FUNCTIONS */
-    private void initializeMapFabOcls() {
-        MainActivity mainActivity = (MainActivity) requireActivity();
-        mapFabButtons = mainActivity.getMapFabButtons();
-
-        centerMapFabOcl = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(mapOverlay.isVisible() && mapOverlay != null) {
-                    centerToOverlay(mapOverlay.getBounds(), mapOverlay.getBearing());
-                }
-            }
-        };
-        buildingFabOcl = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                buildingPum = new PopupMenu(requireActivity(), mapFabButtons[1]);
-                buildingPum.getMenuInflater().inflate(R.menu.building_menu, buildingPum.getMenu());
-                initializeBuildingPumOmicl();
-                buildingPum.setOnMenuItemClickListener(buildingPumOmicl);
-                buildingPum.show();
-            }
-        };
-
-        mapFabButtons[0].setOnClickListener(centerMapFabOcl);
-        mapFabButtons[1].setOnClickListener(buildingFabOcl);
-        // implement the other buttons soon tm
-    }
-    private void centerToOverlay(LatLngBounds bounds, float bearing) {
-        campusGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
-        campusGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder()
-                .zoom(campusGoogleMap.getCameraPosition().zoom)
-                .target(bounds.getCenter())
-                .bearing(bearing).build()));
-    }
-    private double toDegrees(@NonNull double[] degreesMinutesSeconds) {
-        double degrees = degreesMinutesSeconds[0];
-        double minutes = (degreesMinutesSeconds[1] / 60);
-        double seconds = (degreesMinutesSeconds[2] / 3600);
-        return degrees + minutes + seconds;
-    }
-    @NonNull
-    private LatLngBounds toLatLngBounds(double[] south, double[] west, double[] north, double[] east) {
-        // REMEMBER
-        // LATITUDE IS DEGREES NORTH/SOUTH OF EQUATOR
-        // LONGITUDE IS DEGREES EAST/WEST OF PRIME MERIDIAN
-        LatLng southWest = new LatLng(toDegrees(south), toDegrees(west));
-        LatLng northEast = new LatLng(toDegrees(north), toDegrees(east));
-        return new LatLngBounds(southWest, northEast);
-    }
-
-    private void initializeGoogleMaps() {
-        // Create a fragment for managing the lifecycle of a GoogleMap object.
-        GoogleMapOptions googleMapOptions = new GoogleMapOptions()
+        GoogleMapOptions tempGoogleMapOptions = new GoogleMapOptions()
                 .mapType(GoogleMap.MAP_TYPE_NONE)
                 .rotateGesturesEnabled(true)
                 .scrollGesturesEnabled(true)
                 .tiltGesturesEnabled(true)
-                .zoomControlsEnabled(false)
-                .compassEnabled(false);
-        SupportMapFragment campusSupportMapFragment = SupportMapFragment.newInstance(googleMapOptions);
-        getChildFragmentManager().beginTransaction().add(R.id.map_fcv, campusSupportMapFragment).commit();
+                .zoomControlsEnabled(true)
+                .compassEnabled(true);
+        SupportMapFragment tempSupportMapFragment = SupportMapFragment.newInstance(tempGoogleMapOptions);
+        getChildFragmentManager().beginTransaction().add(R.id.map_fcv, tempSupportMapFragment).commit();
 
-        // Set the callback on the fragment to get the GoogleMap object contained in it
-        initializeOnMapReadyCallback();
-        campusSupportMapFragment.getMapAsync(onMapReadyCallback);
+        tempSupportMapFragment.getMapAsync(MapFragment.this);
+
+        return view;
+    }
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        googleMap = map;
+
+        initializeAllMapData();
+        // add a ground overlay and animate pan to it
+        currentMapData = burnabyCampus;
+        addOverlay(currentMapData);
+        centerMapTo(currentMapData);
+
+        initializeMapFabOcls();
     }
 
-    private void initializeBuildingPumOmicl() {
-        buildingPumOmicl = new PopupMenu.OnMenuItemClickListener() {
+    /* HELPER FUNCTIONS */
+    private void initializeAllMapData() {
+        // Burnaby Campus
+        double[] tempNorth = {49, 15, 10.42};
+        double[] tempSouth = {49, 14, 36.89};
+        double[] tempEast = {-122, -59, -28.33};
+        double[] tempWest = {-123, -0, -47.94};
+        float tempBearing = 90;
+        BitmapDescriptor tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.burnaby_campus);
+        double[][] tempData = {tempSouth, tempWest, tempNorth, tempEast};
+        burnabyCampus = createMapData("Burnaby Campus", tempData, tempBearing, tempBitmapDescriptor);
+
+        // SW01 Floor 1
+        tempNorth = new double[] {49, 15, 5.67};
+        tempSouth = new double[] {49, 15, 1.10};
+        tempEast = new double[] {-123, -0, -4.81};
+        tempWest = new double[] {-123, -0, -15.54};
+        tempBearing = 90.4743f;
+        tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_1);
+        tempData = new double[][] {tempSouth, tempWest, tempNorth, tempEast};
+        sw01_1 = createMapData("SW01_1", tempData, tempBearing, tempBitmapDescriptor);
+
+        // SW01 Floor 2
+        tempNorth = new double[] {49, 15, 5.36};
+        tempSouth = new double[] {49, 15, 1.11};
+        tempEast = new double[] {-123, -0, -5.13};
+        tempWest = new double[] {-123, -0, -15.22};
+        tempBearing = 90.3857f;
+        tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_2);
+        sw01_2 = createMapData("SW01_2", tempData, tempBearing, tempBitmapDescriptor);
+
+        // SW01 Floor 3
+        tempNorth = new double[] {49, 15, 5.72};
+        tempSouth = new double[] {49, 15, 1.19};
+        tempEast = new double[] {-123, -0, -5.10};
+        tempWest = new double[] {-123, -0, -15.80};
+        tempBearing = 90.4109f;
+        tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_3);
+        sw01_3 = createMapData("SW01_3", tempData, tempBearing, tempBitmapDescriptor);
+
+        // SW01 Floor 4
+        tempNorth = new double[] {49, 15, 5.81};
+        tempSouth = new double[] {49, 15, 1.26};
+        tempEast = new double[] {-123, -0, -4.99};
+        tempWest = new double[] {-123, -0, -15.72};
+        tempBearing = 90.3929f;
+        tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_4);
+        sw01_4 = createMapData("SW01_4", tempData, tempBearing, tempBitmapDescriptor);
+    }
+    private void initializeMapFabOcls() {
+        MainActivity mainActivity = (MainActivity) requireActivity();
+        mapFabs = mainActivity.getMapFabButtons();
+
+        View.OnClickListener centerMapFabOcl = new View.OnClickListener() {
             @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if(item.getItemId() == R.id.bcit_whole) {
-                    if(mapOverlay != null) mapOverlay.remove();
-                    mapOverlay = campusGoogleMap.addGroundOverlay(bcitOverlayOptions);
-                    Objects.requireNonNull(mapOverlay).setVisible(true);
-                    centerToOverlay(mapOverlay.getBounds(), mapOverlay.getBearing());
-                }
-                if (item.getItemId() == R.id.bcit_sw01) {
-                    if(mapOverlay != null) mapOverlay.remove();
-                    mapOverlay = campusGoogleMap.addGroundOverlay(bcitOverlayOptions);
-                    Objects.requireNonNull(mapOverlay).setVisible(true);
-                    centerToOverlay(sw01_1_OverlayOptions.getBounds(), sw01_1_OverlayOptions.getBearing());
-                }
-                if (item.getItemId() == R.id.bcit_sw03) {
-                    if(mapOverlay != null) mapOverlay.remove();
-                    mapOverlay = campusGoogleMap.addGroundOverlay(bcitOverlayOptions);
-                    Objects.requireNonNull(mapOverlay).setVisible(true);
-                    // center to sw3 (not implemented yet)
-                    //centerToOverlay(sw03_1_OverlayOptions.getBounds(), sw03_1_OverlayOptions.getBearing());
-                }
-                if(item.getItemId() == R.id.sw01_1) {
-                    if(mapOverlay != null) mapOverlay.remove();
-                    mapOverlay = campusGoogleMap.addGroundOverlay(sw01_1_OverlayOptions);
-                    Objects.requireNonNull(mapOverlay).setVisible(true);
-                    centerToOverlay(mapOverlay.getBounds(), mapOverlay.getBearing());
-                }
-                if(item.getItemId() == R.id.sw01_2) {
-                    if(mapOverlay != null) mapOverlay.remove();
-                    mapOverlay = campusGoogleMap.addGroundOverlay(sw01_2_OverlayOptions);
-                    Objects.requireNonNull(mapOverlay).setVisible(true);
-                    centerToOverlay(mapOverlay.getBounds(), mapOverlay.getBearing());
-                }
-                if(item.getItemId() == R.id.sw01_3) {
-                    if(mapOverlay != null) mapOverlay.remove();
-                    mapOverlay = campusGoogleMap.addGroundOverlay(sw01_3_OverlayOptions);
-                    Objects.requireNonNull(mapOverlay).setVisible(true);
-                    centerToOverlay(mapOverlay.getBounds(), mapOverlay.getBearing());
-                }
-                if(item.getItemId() == R.id.sw01_4) {
-                    if(mapOverlay != null) mapOverlay.remove();
-                    mapOverlay = campusGoogleMap.addGroundOverlay(sw01_4_OverlayOptions);
-                    Objects.requireNonNull(mapOverlay).setVisible(true);
-                    centerToOverlay(mapOverlay.getBounds(), mapOverlay.getBearing());
-                }
-                return true;
+            public void onClick(View view) {
+                centerMapTo(currentMapData);
             }
         };
+        View.OnClickListener searchMapFabOcl = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mapPum = new PopupMenu(requireActivity(), mapFabs[1]);
+                mapPum.getMenuInflater().inflate(R.menu.map_menu, mapPum.getMenu());
+                mapPum.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        if (item.getItemId() == R.id.outdoor) {
+                            nextMapData = burnabyCampus;
+                        }
+                        if (item.getItemId() == R.id.outdoor_bcit) {
+                            if(currentMapData == nextMapData) {
+                                centerMapTo(nextMapData);
+                            }
+                            else {
+                                moveTo(nextMapData);
+                            }
+                        }
+                        if (item.getItemId() == R.id.outdoor_sw01) {
+                            if (currentMapData == nextMapData) {
+                                centerMapTo(sw01_1);
+                            }
+                            else {
+                                mapOverlay.remove(); // remove the current map
+                                addOverlay(nextMapData); // add the next map
+                                centerMapTo(sw01_1); // pan to next map
+                                currentMapData = nextMapData; // set the new current map
+                            }
+                        }
+                        if (item.getItemId() == R.id.outdoor_sw03) {
+                        }
+
+                        if (item.getItemId() == R.id.indoor) {
+                        }
+                        if (item.getItemId() == R.id.indoor_sw01) {
+                        }
+                        if (item.getItemId() == R.id.indoor_sw01_1) {
+                            nextMapData = sw01_1;
+                            if(currentMapData == nextMapData) {
+                                centerMapTo(nextMapData);
+                            }
+                            else {
+                                moveTo(nextMapData);
+                            }
+                        }
+                        if (item.getItemId() == R.id.indoor_sw01_2) {
+                            nextMapData = sw01_2;
+                            if(currentMapData == nextMapData) {
+                                centerMapTo(nextMapData);
+                            }
+                            else {
+                                moveTo(nextMapData);
+                            }
+                        }
+                        if (item.getItemId() == R.id.indoor_sw01_3) {
+                            nextMapData = sw01_3;
+                            if(currentMapData == nextMapData) {
+                                centerMapTo(nextMapData);
+                            }
+                            else {
+                                moveTo(nextMapData);
+                            }
+                        }
+                        if (item.getItemId() == R.id.indoor_sw01_4) {
+                            nextMapData = sw01_4;
+                            if(currentMapData == nextMapData) {
+                                centerMapTo(nextMapData);
+                            }
+                            else {
+                                moveTo(nextMapData);
+                            }
+                        }
+                        return true;
+                    }
+                });
+                mapPum.show();
+            }
+        };
+        mapFabs[0].setOnClickListener(centerMapFabOcl);
+        mapFabs[1].setOnClickListener(searchMapFabOcl);
+
+        // implement the other buttons soon tm
+
     }
-    private void initializeGroundOverlays() {
-        bcitOverlayOptions = new GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(R.drawable.burnaby_campus)).positionFromBounds(toLatLngBounds(bcit_South, bcit_West, bcit_North, bcit_East)).bearing(bcit_Bearing).transparency(0.1f).visible(false);
-        sw01_1_OverlayOptions = new GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(R.drawable.sw01_1)).positionFromBounds(toLatLngBounds(sw01_1_South, sw01_1_West, sw01_1_North, sw01_1_East)).bearing(sw01_1_Bearing).transparency(0.1f).visible(false);
-        sw01_2_OverlayOptions = new GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(R.drawable.sw01_2)).positionFromBounds(toLatLngBounds(sw01_2_South, sw01_2_West, sw01_2_North, sw01_2_East)).bearing(sw01_2_Bearing).transparency(0.1f).visible(false);
-        sw01_3_OverlayOptions = new GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(R.drawable.sw01_3)).positionFromBounds(toLatLngBounds(sw01_3_South, sw01_3_West, sw01_3_North, sw01_3_East)).bearing(sw01_3_Bearing).transparency(0.1f).visible(false);
-        sw01_4_OverlayOptions = new GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(R.drawable.sw01_4)).positionFromBounds(toLatLngBounds(sw01_4_South, sw01_4_West, sw01_4_North, sw01_4_East)).bearing(sw01_4_Bearing).transparency(0.1f).visible(false);
+
+    /* HELPER FUNCTIONS */
+
+    private double toDegrees(double[] inDegreesMinutesSeconds) {
+        double degrees = inDegreesMinutesSeconds[0];
+        double minutes = (inDegreesMinutesSeconds[1] / 60);
+        double seconds = (inDegreesMinutesSeconds[2] / 3600);
+        return degrees + minutes + seconds;
+    }
+    private MapData createMapData(String name, double[][] tempData, float tempBearing, BitmapDescriptor tempBitmapDescriptor) {
+        float tempZoom = getMapZoom(new LatLngBounds(new LatLng(toDegrees(tempData[0]), toDegrees(tempData[1])), new LatLng(toDegrees(tempData[2]), toDegrees(tempData[3]))));
+        return new MapData(name, tempData, tempBearing, tempBitmapDescriptor, tempZoom);
+    }
+    private float getMapZoom(LatLngBounds bounds) {
+        CameraPosition tempCameraPosition = googleMap.getCameraPosition();
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
+        float zoom = googleMap.getCameraPosition().zoom;
+        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(tempCameraPosition));
+        return zoom;
+    }
+    private void addOverlay(MapData mapData) {
+        mapOverlay = googleMap.addGroundOverlay(new GroundOverlayOptions().image(mapData.getBitmapDescriptor()).positionFromBounds(mapData.getBounds()).bearing(mapData.getBearing()));
+    }
+    private void centerMapTo(MapData mapData) {
+        CameraPosition tempCameraPosition = new CameraPosition.Builder().target(mapData.getBounds().getCenter()).bearing(mapData.getBearing()).zoom(mapData.getMapZoomLevel()).build();
+        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(tempCameraPosition), 1000, new GoogleMap.CancelableCallback() {
+            @Override
+            public void onCancel() {
+
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        });
+    }
+    private void moveTo(MapData mapData) {
+        mapOverlay.remove(); // remove the current map
+        addOverlay(mapData); // add the next map
+        centerMapTo(mapData); // pan to next map
+        currentMapData = mapData; // set the new current map
     }
 }
