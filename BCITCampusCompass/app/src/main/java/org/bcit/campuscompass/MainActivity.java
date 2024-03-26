@@ -62,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
     private SettingsFragment settingsFragment;
 
     // Expand Floating Action Button
-    private boolean clickedExpandFab;
+    private boolean toggledExpandFab;
+    private boolean toggledLocationFab;
     private View.OnClickListener expandFabOnClickListener;
 
     /* METHODS */
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         initializeBinding();
         initializeFragments();
         initializeExpandFab();
+        toggledLocationFab = false;
 
         makeToast(MainActivity.this, "Binding, Fragments, FABs, all initialized.");
     }
@@ -117,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     private void initializeExpandFab() {
-        clickedExpandFab = false;
+        toggledExpandFab = false;
         hideAllFab();
         initializeAllFab();
         activityMainBinding.expandFab.setOnClickListener(expandFabOnClickListener);
@@ -128,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 for (Fragment fragment : fragmentManager.getFragments()) {
                     if (fragment.isVisible()) {
-                        if(clickedExpandFab) {
+                        if(toggledExpandFab) {
                             closeExpandFab();
                         }
                         else {
@@ -144,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         for (Fragment fragment : fragmentManager.getFragments()) {
             if(fragment == fragmentToShow) {
                 fragmentTransaction.show(fragment);
-                if (clickedExpandFab) openExpandFab(fragment);
+                if (toggledExpandFab) openExpandFab(fragment);
             }
             else {
                 fragmentTransaction.hide(fragment);
@@ -161,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
     private void closeExpandFab() {
         hideAllFab();
         activityMainBinding.expandFab.animate().rotation(0);
-        clickedExpandFab = false;
+        toggledExpandFab = false;
     }
     private void openExpandFab(Fragment fragment) {
         hideAllFab();
@@ -177,10 +179,24 @@ public class MainActivity extends AppCompatActivity {
         if(fragment instanceof SettingsFragment) {
         }
         activityMainBinding.expandFab.animate().rotation(225f);
-        clickedExpandFab = true;
+        toggledExpandFab = true;
     }
     public FloatingActionButton[] getMapFabButtons() {
         return new FloatingActionButton[] {activityMainBinding.centerMapFab, activityMainBinding.focusBuildingFab, activityMainBinding.toggleLocationFab};
+    }
+
+    public void updateLocationFab() {
+        if (toggledLocationFab) {
+            toggledLocationFab = false;
+            activityMainBinding.toggleLocationFab.setImageResource(R.drawable.rounded_location_searching_24);
+        }
+        else {
+            toggledLocationFab = true;
+            activityMainBinding.toggleLocationFab.setImageResource(R.drawable.rounded_my_location_24);
+        }
+    }
+    public boolean getLocationFabState() {
+        return toggledLocationFab;
     }
     private void makeToast(Context context, CharSequence message) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();

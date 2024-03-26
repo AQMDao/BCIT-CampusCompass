@@ -1,18 +1,28 @@
 package org.bcit.campuscompass;
 
+import android.Manifest;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -24,22 +34,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.Map;
+
 public class MapFragment extends Fragment implements OnMapReadyCallback {
     /* LOCAL DATA */
 
-    // Burnaby Campus
     MapData burnabyCampus;
-
-    // SW01_1
     MapData sw01_1;
-
-    // SW01_2
     MapData sw01_2;
-
-    // SW01_3
     MapData sw01_3;
-
-    // SW01_4
     MapData sw01_4;
 
     /* MEMBERS */
@@ -56,14 +59,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     FloatingActionButton[] mapFabs;
 
     // Popup Menu
-    PopupMenu mapPum;
+    private PopupMenu mapPum;
 
-    // Zoom
-    private float zoom;
+    // Location
 
-    // TEST
-
-    private GoogleMap.CancelableCallback test;
 
     /* METHODS */
 
@@ -86,17 +85,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         return view;
     }
+
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
+        googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                initializeAllMapData();
+                // add a ground overlay and animate pan to it
+                currentMapData = burnabyCampus;
+                addOverlay(currentMapData);
+                centerMapTo(currentMapData);
 
-        initializeAllMapData();
-        // add a ground overlay and animate pan to it
-        currentMapData = burnabyCampus;
-        addOverlay(currentMapData);
-        centerMapTo(currentMapData);
-
-        initializeMapFabOcls();
+                initializeMapFabOcls();
+            }
+        });
     }
 
     /* HELPER FUNCTIONS */
@@ -112,42 +116,44 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         burnabyCampus = createMapData("Burnaby Campus", tempData, tempBearing, tempBitmapDescriptor);
 
         // SW01 Floor 1
-        tempNorth = new double[] {49, 15, 5.67};
-        tempSouth = new double[] {49, 15, 1.10};
-        tempEast = new double[] {-123, -0, -4.81};
-        tempWest = new double[] {-123, -0, -15.54};
+        tempNorth = new double[]{49, 15, 5.67};
+        tempSouth = new double[]{49, 15, 1.10};
+        tempEast = new double[]{-123, -0, -4.81};
+        tempWest = new double[]{-123, -0, -15.54};
         tempBearing = 90.4743f;
+
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_1);
-        tempData = new double[][] {tempSouth, tempWest, tempNorth, tempEast};
+        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
         sw01_1 = createMapData("SW01_1", tempData, tempBearing, tempBitmapDescriptor);
 
         // SW01 Floor 2
-        tempNorth = new double[] {49, 15, 5.36};
-        tempSouth = new double[] {49, 15, 1.11};
-        tempEast = new double[] {-123, -0, -5.13};
-        tempWest = new double[] {-123, -0, -15.22};
+        tempNorth = new double[]{49, 15, 5.36};
+        tempSouth = new double[]{49, 15, 1.11};
+        tempEast = new double[]{-123, -0, -5.13};
+        tempWest = new double[]{-123, -0, -15.22};
         tempBearing = 90.3857f;
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_2);
         sw01_2 = createMapData("SW01_2", tempData, tempBearing, tempBitmapDescriptor);
 
         // SW01 Floor 3
-        tempNorth = new double[] {49, 15, 5.72};
-        tempSouth = new double[] {49, 15, 1.19};
-        tempEast = new double[] {-123, -0, -5.10};
-        tempWest = new double[] {-123, -0, -15.80};
+        tempNorth = new double[]{49, 15, 5.72};
+        tempSouth = new double[]{49, 15, 1.19};
+        tempEast = new double[]{-123, -0, -5.10};
+        tempWest = new double[]{-123, -0, -15.80};
         tempBearing = 90.4109f;
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_3);
         sw01_3 = createMapData("SW01_3", tempData, tempBearing, tempBitmapDescriptor);
 
         // SW01 Floor 4
-        tempNorth = new double[] {49, 15, 5.81};
-        tempSouth = new double[] {49, 15, 1.26};
-        tempEast = new double[] {-123, -0, -4.99};
-        tempWest = new double[] {-123, -0, -15.72};
+        tempNorth = new double[]{49, 15, 5.81};
+        tempSouth = new double[]{49, 15, 1.26};
+        tempEast = new double[]{-123, -0, -4.99};
+        tempWest = new double[]{-123, -0, -15.72};
         tempBearing = 90.3929f;
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_4);
         sw01_4 = createMapData("SW01_4", tempData, tempBearing, tempBitmapDescriptor);
     }
+
     private void initializeMapFabOcls() {
         MainActivity mainActivity = (MainActivity) requireActivity();
         mapFabs = mainActivity.getMapFabButtons();
@@ -170,18 +176,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                             nextMapData = burnabyCampus;
                         }
                         if (item.getItemId() == R.id.outdoor_bcit) {
-                            if(currentMapData == nextMapData) {
+                            if (currentMapData == nextMapData) {
                                 centerMapTo(nextMapData);
-                            }
-                            else {
+                            } else {
                                 moveTo(nextMapData);
                             }
                         }
                         if (item.getItemId() == R.id.outdoor_sw01) {
                             if (currentMapData == nextMapData) {
                                 centerMapTo(sw01_1);
-                            }
-                            else {
+                            } else {
                                 mapOverlay.remove(); // remove the current map
                                 addOverlay(nextMapData); // add the next map
                                 centerMapTo(sw01_1); // pan to next map
@@ -197,37 +201,33 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         }
                         if (item.getItemId() == R.id.indoor_sw01_1) {
                             nextMapData = sw01_1;
-                            if(currentMapData == nextMapData) {
+                            if (currentMapData == nextMapData) {
                                 centerMapTo(nextMapData);
-                            }
-                            else {
+                            } else {
                                 moveTo(nextMapData);
                             }
                         }
                         if (item.getItemId() == R.id.indoor_sw01_2) {
                             nextMapData = sw01_2;
-                            if(currentMapData == nextMapData) {
+                            if (currentMapData == nextMapData) {
                                 centerMapTo(nextMapData);
-                            }
-                            else {
+                            } else {
                                 moveTo(nextMapData);
                             }
                         }
                         if (item.getItemId() == R.id.indoor_sw01_3) {
                             nextMapData = sw01_3;
-                            if(currentMapData == nextMapData) {
+                            if (currentMapData == nextMapData) {
                                 centerMapTo(nextMapData);
-                            }
-                            else {
+                            } else {
                                 moveTo(nextMapData);
                             }
                         }
                         if (item.getItemId() == R.id.indoor_sw01_4) {
                             nextMapData = sw01_4;
-                            if(currentMapData == nextMapData) {
+                            if (currentMapData == nextMapData) {
                                 centerMapTo(nextMapData);
-                            }
-                            else {
+                            } else {
                                 moveTo(nextMapData);
                             }
                         }
@@ -237,11 +237,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 mapPum.show();
             }
         };
+
+        View.OnClickListener toggleLocationOcl = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mainActivity.getLocationFabState()) {
+                    mainActivity.updateLocationFab();
+                }
+                else {
+                    mainActivity.updateLocationFab();
+                }
+            }
+        };
+
         mapFabs[0].setOnClickListener(centerMapFabOcl);
         mapFabs[1].setOnClickListener(searchMapFabOcl);
-
-        // implement the other buttons soon tm
-
+        mapFabs[2].setOnClickListener(toggleLocationOcl);
     }
 
     /* HELPER FUNCTIONS */
@@ -267,16 +278,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mapOverlay = googleMap.addGroundOverlay(new GroundOverlayOptions().image(mapData.getBitmapDescriptor()).positionFromBounds(mapData.getBounds()).bearing(mapData.getBearing()));
     }
     private void centerMapTo(MapData mapData) {
-        CameraPosition tempCameraPosition = new CameraPosition.Builder().target(mapData.getBounds().getCenter()).bearing(mapData.getBearing()).zoom(mapData.getMapZoomLevel()).build();
-        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(tempCameraPosition), 1000, new GoogleMap.CancelableCallback() {
+        googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
-            public void onCancel() {
+            public void onMapLoaded() {
+                CameraPosition tempCameraPosition = new CameraPosition.Builder().target(mapData.getBounds().getCenter()).bearing(mapData.getBearing()).zoom(mapData.getMapZoomLevel()).build();
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(tempCameraPosition), 1000, new GoogleMap.CancelableCallback() {
+                    @Override
+                    public void onCancel() {
 
-            }
+                    }
 
-            @Override
-            public void onFinish() {
+                    @Override
+                    public void onFinish() {
 
+                    }
+                });
             }
         });
     }
