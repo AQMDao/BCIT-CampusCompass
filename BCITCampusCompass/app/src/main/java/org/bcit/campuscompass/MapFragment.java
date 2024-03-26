@@ -1,10 +1,13 @@
 package org.bcit.campuscompass;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,8 +20,19 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
@@ -32,6 +46,8 @@ import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Map;
@@ -63,8 +79,38 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     // Location
 
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private LocationCallback locationCallback;
+    private SettingsClient settingsClient;
+    private LocationRequest locationRequest;
+    private LocationSettingsRequest locationSettingsRequest;
+    private Location lastLocation;
+
+    private ActivityResultLauncher<String[]> activityResultLauncher;
+
+    private Marker userMarker;
+
 
     /* METHODS */
+
+    public MapFragment() {
+        activityResultLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
+            @Override
+            public void onActivityResult(Map<String, Boolean> result) {
+                Boolean areAllGranted = true;
+                for(Boolean b: result.values()) {
+                    areAllGranted = areAllGranted && b;
+                }
+                if(areAllGranted) {
+                    Toast.makeText(requireActivity(), "Permissions GOOD", Toast.LENGTH_SHORT).show();
+                    init();
+                }
+                else {
+                    Toast.makeText(requireActivity(), "Permissions BAD", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -242,9 +288,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onClick(View v) {
                 if (mainActivity.getLocationFabState()) {
+                    stopLocationUpdates();
                     mainActivity.updateLocationFab();
                 }
                 else {
+                    activityResultLauncher.launch(new String[] {Manifest.permission.ACCESS_FINE_LOCATION});
                     mainActivity.updateLocationFab();
                 }
             }
@@ -301,5 +349,51 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         addOverlay(mapData); // add the next map
         centerMapTo(mapData); // pan to next map
         currentMapData = mapData; // set the new current map
+    }
+
+    @SuppressLint("MissingPermission")
+    private void startLocationUpdates() {
+        settingsClient.checkLocationSettings(locationSettingsRequest).addOnSuccessListener(locationSettingsResponse -> {
+            Toast.makeText(requireActivity(), "Location Settings GOOD", Toast.LENGTH_SHORT).show();
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
+        }).addOnFailureListener(e -> {
+            int statusCode = ((ApiException) e).getStatusCode();
+            Toast.makeText(requireActivity(), "Location Settings BAD:" + e, Toast.LENGTH_SHORT).show();
+        });
+    }
+    public void stopLocationUpdates() {
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback).addOnCompleteListener(task -> {
+            Toast.makeText(requireActivity(), "Location Updates STOPPED", Toast.LENGTH_SHORT).show();
+            if(userMarker != null) {
+                userMarker.remove();
+            }
+        });
+    }
+    public void init() {
+        fusedLocationProviderClient= LocationServices.getFusedLocationProviderClient(requireActivity());
+        settingsClient=LocationServices.getSettingsClient(requireActivity());
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                receiveLocation(locationResult);
+            }
+        };
+        locationRequest = LocationRequest.create().setInterval(5000).setFastestInterval(500).setPriority(Priority.PRIORITY_HIGH_ACCURACY).setMaxWaitTime(100);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        builder.addLocationRequest(locationRequest);
+        locationSettingsRequest = builder.build();
+        startLocationUpdates();
+    }
+
+    private void receiveLocation(LocationResult locationResult) {
+        lastLocation = locationResult.getLastLocation();
+        Toast.makeText(requireActivity(), "Latitude: " + lastLocation.getLatitude() + " | Longitude: " + lastLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+        if(userMarker != null) {
+            userMarker.setPosition(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()));
+        }
+        else {
+            userMarker = googleMap.addMarker(new MarkerOptions().title("User").position(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude())));
+        }
     }
 }
