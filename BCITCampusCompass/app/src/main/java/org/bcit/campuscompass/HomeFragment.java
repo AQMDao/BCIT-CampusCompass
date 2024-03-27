@@ -26,7 +26,7 @@ public class HomeFragment extends Fragment {
         debugTextView = rootView.findViewById(R.id.debugTextView);
 
         //debug message
-        String debugMessage = "Latitude and Longitude: " + getValuetoDebug("Burnaby Campus", "SW1", "1172");
+        String debugMessage = "Latitude and Longitude: " + getValuetoDebug("Burnaby Campus");
 
         // set debug message to the textview
         debugTextView.setText(debugMessage);
@@ -38,15 +38,9 @@ public class HomeFragment extends Fragment {
 
     }
 
-    public String getValuetoDebug(String campusName, String buildingName, String roomNumber) {
-        //debug logic here
-        DatabaseHelper dbHelper = new DatabaseHelper(getContext(), "building_floor_rooms_db.db", null, 1);
-        LatLng latLng = dbHelper.getRoomLatLng(campusName, buildingName, roomNumber);
-        //latLng = null;
-        if(true) {
-            return "1";//latLng.toString();
-        } else {
-            return "LatLng is null";
-        }
+    public String getValuetoDebug(String campusName) {
+        DatabaseHelper dbHelper = new DatabaseHelper(getContext());
+
+        return dbHelper.getRoomDimensions();
     }
 }

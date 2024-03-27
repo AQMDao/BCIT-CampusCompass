@@ -105,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.hide(settingsFragment);
         fragmentTransaction.commit();
 
+
+
         bottomNavigationView.setSelectedItemId(R.id.home_navigation_button);
 
         bottomNavigationView.setOnItemSelectedListener(item -> {

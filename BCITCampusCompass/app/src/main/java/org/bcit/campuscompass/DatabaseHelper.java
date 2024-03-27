@@ -5,10 +5,17 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.BaseColumns;
 
 import androidx.annotation.Nullable;
 
 import com.google.android.gms.maps.model.LatLng;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -22,9 +29,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_BUILDING = "building_id";
     private static final String COLUMN_FLOOR = "floor_id";
 
-    public DatabaseHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    public DatabaseHelper(Context context) {
+        super(context, DATABASE_NAME , null, DATABASE_VERSION);
         this.context = context;
+
+
     }
 
     @Override
@@ -37,30 +46,53 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public LatLng getRoomLatLng(String campusName, String buildingName, String roomNumber){
-        SQLiteDatabase db = this.getReadableDatabase();
+    public void copyDatabase() throws IOException {
+        InputStream inputStream = context.getAssets().open(DATABASE_NAME);
+        String outFileName = context.getDatabasePath(DATABASE_NAME).getPath();
+        OutputStream outputStream = new FileOutputStream(outFileName);
 
-        String query =  "SELECT Room.latitude, Room.longitude " +
-                        "FROM Room " +
-                        "INNER JOIN Floor ON Room.floor_id = Floor.floor_id " +
-                        "INNER JOIN Building ON Floor.building_id = Building.building_id " +
-                        "INNER JOIN Campus ON Building.campus_id = Campus.campus_id " +
-                        "WHERE Campus.campus_name = ? " +
-                        "AND Building.building_name = ? " +
-                        "AND Room.room_number = ?";
-
-        Cursor cursor = db.rawQuery(query, new String[]{campusName, buildingName, roomNumber});
-
-        LatLng latLng = null;
-        if (cursor != null && cursor.moveToFirst()){
-            @SuppressLint("Range") double latitude = cursor.getDouble(cursor.getColumnIndex("latitude"));
-            @SuppressLint("Range") double longitude = cursor.getDouble(cursor.getColumnIndex("longitude"));
-            latLng = new LatLng(latitude, longitude);
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = inputStream.read(buffer)) > 0) {
+            outputStream.write(buffer, 0, length);
         }
-        if (cursor != null) {
+
+        outputStream.flush();
+        outputStream.close();
+        inputStream.close();
+    }
+
+    public String getRoomDimensions(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String value = "";
+
+        Cursor testing = db.rawQuery("SELECT * FROM " + "Building", null);
+
+
+        //define columns want to retrieve
+        String[] projection = {"campus_id"};
+
+        //define selection criteria
+        String selection = "building_id = ?";
+        String[] selectionArgs = {"1"};
+
+        //Execute the query
+        Cursor cursor = db.query("Building", projection, selection, selectionArgs, null, null, null);
+
+        //check if the cursor has data
+        if(cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") int degrees = cursor.getInt(cursor.getColumnIndex("degrees"));
+            @SuppressLint("Range") int minutes = cursor.getInt(cursor.getColumnIndex("minutes"));
+            @SuppressLint("Range") int seconds = cursor.getInt(cursor.getColumnIndex("seconds"));
+
+            value = degrees + " " + minutes + " " + seconds;
+
             cursor.close();
         }
+
+        //close database connection
         db.close();
-        return latLng;
+
+        return value;
     }
 }
