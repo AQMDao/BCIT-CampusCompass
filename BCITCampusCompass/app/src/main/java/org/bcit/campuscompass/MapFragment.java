@@ -133,7 +133,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             public void onMapLoaded() {
                 initializeAllMapData();
 
-                currentMapData = sw03_2;
+                currentMapData = burnabyCampus;
                 addOverlay(currentMapData);
                 centerMapTo(currentMapData);
 
@@ -358,16 +358,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
     private void addOverlay(MapData mapData) {
         float tempBearing;
-        switch(mapData.getName().split("_")[0]) {
-            case "SW01":
-                tempBearing = 90.4f;
-                break;
-            case "SW03":
-                tempBearing = 0.3f;
-                break;
-            default:
-                tempBearing = 90f;
-                break;
+        if(mapData.getName() == "Burnaby Campus") {
+            tempBearing = 90f;
+        }
+        else {
+            switch (mapData.getName().split("_")[0]) {
+                case "SW01":
+                    tempBearing = 90.4f;
+                    break;
+                case "SW03":
+                    tempBearing = 0.3f;
+                    break;
+                default:
+                    tempBearing = 90f;
+                    break;
+            }
         }
         mapOverlay = googleMap.addGroundOverlay(new GroundOverlayOptions().image(mapData.getBitmapDescriptor()).positionFromBounds(mapData.getBounds()).bearing(tempBearing));
     }

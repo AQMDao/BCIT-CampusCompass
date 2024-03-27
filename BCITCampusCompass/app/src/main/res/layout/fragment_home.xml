@@ -5,19 +5,9 @@
     android:layout_height="match_parent"
     tools:context=".HomeFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Home Fragment" />
-
-    <EditText
-        android:id="@+id/debugTextView"
-        android:layout_width="339dp"
-        android:layout_height="435dp"
-        android:ems="10"
-        android:inputType="text"
-        android:text="Name" />
+        android:text="@string/home_navigation" />
 
 </FrameLayout>
