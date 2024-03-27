@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.IOException;
+
 public class HomeFragment extends Fragment {
 
     private TextView debugTextView;
@@ -26,21 +28,27 @@ public class HomeFragment extends Fragment {
         debugTextView = rootView.findViewById(R.id.debugTextView);
 
         //debug message
-        String debugMessage = "Latitude and Longitude: " + getValuetoDebug("Burnaby Campus");
+        //String debugMessage = "Latitude and Longitude: " + getValuetoDebug("Burnaby Campus");
 
         // set debug message to the textview
-        debugTextView.setText(debugMessage);
+        debugTextView.setText("debugMessage");
         debugTextView.setVisibility(View.VISIBLE);
 
         return rootView;
 
-
-
     }
 
     public String getValuetoDebug(String campusName) {
-        DatabaseHelper dbHelper = new DatabaseHelper(getContext());
+        DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
+        try {
+            dbHelper.copyDatabase();
+            dbHelper.openDatabase();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return dbHelper.getRoomDimensions();
     }
+
+    // hi michael here
 }

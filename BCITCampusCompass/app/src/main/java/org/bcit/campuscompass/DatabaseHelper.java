@@ -3,6 +3,7 @@ package org.bcit.campuscompass;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
@@ -21,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private Context context;
     private static final String DATABASE_NAME = "building_floor_rooms_db.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String TABLE_NAME = "Rooms";
     private static final String COLUMN_ID = "room_id";
@@ -38,7 +39,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
     }
 
     @Override
@@ -62,28 +62,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         inputStream.close();
     }
 
+    public SQLiteDatabase openDatabase() throws SQLException {
+        String path = context.getDatabasePath(DATABASE_NAME).getPath();
+        return SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READWRITE);
+    }
+
     public String getRoomDimensions(){
         SQLiteDatabase db = this.getReadableDatabase();
         String value = "";
 
-        Cursor testing = db.rawQuery("SELECT * FROM " + "Building", null);
+        //Cursor testing = db.rawQuery("SELECT * FROM " + "Building", null);
 
 
         //define columns want to retrieve
-        String[] projection = {"campus_id"};
+        String[] projection = {"degrees", "minutes", "seconds"};
 
         //define selection criteria
-        String selection = "building_id = ?";
+        String selection = "dimension_id = ?";
         String[] selectionArgs = {"1"};
 
         //Execute the query
-        Cursor cursor = db.query("Building", projection, selection, selectionArgs, null, null, null);
+        Cursor cursor = db.query("Dimensions", projection, selection, selectionArgs, null, null, null);
 
         //check if the cursor has data
         if(cursor != null && cursor.moveToFirst()) {
-            @SuppressLint("Range") int degrees = cursor.getInt(cursor.getColumnIndex("degrees"));
-            @SuppressLint("Range") int minutes = cursor.getInt(cursor.getColumnIndex("minutes"));
-            @SuppressLint("Range") int seconds = cursor.getInt(cursor.getColumnIndex("seconds"));
+            @SuppressLint("Range") float degrees = cursor.getFloat(cursor.getColumnIndex("degrees"));
+            @SuppressLint("Range") float minutes = cursor.getFloat(cursor.getColumnIndex("minutes"));
+            @SuppressLint("Range") float seconds = cursor.getFloat(cursor.getColumnIndex("seconds"));
 
             value = degrees + " " + minutes + " " + seconds;
 
