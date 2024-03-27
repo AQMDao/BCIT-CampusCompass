@@ -158,7 +158,6 @@ public class MainActivity extends AppCompatActivity {
         activityMainBinding.centerMapFab.hide();
         activityMainBinding.focusBuildingFab.hide();
         activityMainBinding.toggleLocationFab.hide();
-
     }
     private void closeExpandFab() {
         hideAllFab();

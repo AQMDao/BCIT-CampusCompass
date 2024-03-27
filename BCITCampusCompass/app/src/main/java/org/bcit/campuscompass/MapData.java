@@ -19,10 +19,9 @@ public class MapData {
     private float mapZoomLevel;
 
     /* METHODS */
-    public MapData(String name, double[][] data, float bearing, BitmapDescriptor bitmapDescriptor, float zoom) {
+    public MapData(String name, double[][] data, BitmapDescriptor bitmapDescriptor, float zoom) {
         this.mapName = name;
         this.mapData = data;
-        this.mapBearing = bearing;
         this.mapBitmapDescriptor = bitmapDescriptor;
         this.mapZoomLevel = zoom;
     }

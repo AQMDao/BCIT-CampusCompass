@@ -44,16 +44,16 @@
                 android:title="SW03">
                 <menu>
                     <item
-                        android:id="@+id/sw03_1"
+                        android:id="@+id/indoor_sw03_1"
                         android:title="Floor 1" />
                     <item
-                        android:id="@+id/sw03_2"
+                        android:id="@+id/indoor_sw03_2"
                         android:title="Floor 2" />
                     <item
-                        android:id="@+id/sw03_3"
+                        android:id="@+id/indoor_sw03_3"
                         android:title="Floor 3" />
                     <item
-                        android:id="@+id/sw03_4"
+                        android:id="@+id/indoor_sw03_4"
                         android:title="Floor 4" />
                 </menu>
             </item>

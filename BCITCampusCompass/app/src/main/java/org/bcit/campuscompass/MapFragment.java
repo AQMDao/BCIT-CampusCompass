@@ -2,9 +2,6 @@ package org.bcit.campuscompass;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
@@ -12,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -20,8 +16,6 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.common.api.ApiException;
@@ -36,7 +30,6 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -48,6 +41,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Map;
@@ -60,6 +55,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     MapData sw01_2;
     MapData sw01_3;
     MapData sw01_4;
+    MapData sw03_1;
+    MapData sw03_2;
 
     /* MEMBERS */
 
@@ -85,11 +82,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private LocationRequest locationRequest;
     private LocationSettingsRequest locationSettingsRequest;
     private Location lastLocation;
-
     private ActivityResultLauncher<String[]> activityResultLauncher;
-
     private Marker userMarker;
-
 
     /* METHODS */
 
@@ -114,7 +108,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Initialize the view
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
         GoogleMapOptions tempGoogleMapOptions = new GoogleMapOptions()
@@ -139,10 +132,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onMapLoaded() {
                 initializeAllMapData();
-                // add a ground overlay and animate pan to it
-                currentMapData = burnabyCampus;
+
+                currentMapData = sw03_2;
                 addOverlay(currentMapData);
                 centerMapTo(currentMapData);
+
 
                 initializeMapFabOcls();
             }
@@ -156,48 +150,64 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         double[] tempSouth = {49, 14, 36.89};
         double[] tempEast = {-122, -59, -28.33};
         double[] tempWest = {-123, -0, -47.94};
-        float tempBearing = 90;
         BitmapDescriptor tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.burnaby_campus);
         double[][] tempData = {tempSouth, tempWest, tempNorth, tempEast};
-        burnabyCampus = createMapData("Burnaby Campus", tempData, tempBearing, tempBitmapDescriptor);
+        burnabyCampus = createMapData("Burnaby Campus", tempData, tempBitmapDescriptor);
 
         // SW01 Floor 1
-        tempNorth = new double[]{49, 15, 5.67};
-        tempSouth = new double[]{49, 15, 1.10};
-        tempEast = new double[]{-123, -0, -4.81};
-        tempWest = new double[]{-123, -0, -15.54};
-        tempBearing = 90.4743f;
-
+        tempNorth = new double[]{49, 15, 5.58};
+        tempSouth = new double[]{49, 15, 1.00};
+        tempEast = new double[]{-123, -0, -4.80};
+        tempWest = new double[]{-123, -0, -15.55};
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_1);
         tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
-        sw01_1 = createMapData("SW01_1", tempData, tempBearing, tempBitmapDescriptor);
+        sw01_1 = createMapData("SW01_1", tempData, tempBitmapDescriptor);
 
         // SW01 Floor 2
-        tempNorth = new double[]{49, 15, 5.36};
-        tempSouth = new double[]{49, 15, 1.11};
+        tempNorth = new double[]{49, 15, 5.30};
+        tempSouth = new double[]{49, 15, 0.95};
         tempEast = new double[]{-123, -0, -5.13};
-        tempWest = new double[]{-123, -0, -15.22};
-        tempBearing = 90.3857f;
+        tempWest = new double[]{-123, -0, -15.27};
+        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
+        // access from dat
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_2);
-        sw01_2 = createMapData("SW01_2", tempData, tempBearing, tempBitmapDescriptor);
+        sw01_2 = createMapData("SW01_2", tempData, tempBitmapDescriptor);
 
         // SW01 Floor 3
-        tempNorth = new double[]{49, 15, 5.72};
-        tempSouth = new double[]{49, 15, 1.19};
-        tempEast = new double[]{-123, -0, -5.10};
-        tempWest = new double[]{-123, -0, -15.80};
-        tempBearing = 90.4109f;
+        tempNorth = new double[]{49, 15, 5.62};
+        tempSouth = new double[]{49, 15, 1.08};
+        tempEast = new double[]{-123, -0, -5.09};
+        tempWest = new double[]{-123, -0, -15.83};
+        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_3);
-        sw01_3 = createMapData("SW01_3", tempData, tempBearing, tempBitmapDescriptor);
+        sw01_3 = createMapData("SW01_3", tempData, tempBitmapDescriptor);
 
         // SW01 Floor 4
-        tempNorth = new double[]{49, 15, 5.81};
-        tempSouth = new double[]{49, 15, 1.26};
-        tempEast = new double[]{-123, -0, -4.99};
-        tempWest = new double[]{-123, -0, -15.72};
-        tempBearing = 90.3929f;
+        tempNorth = new double[]{49, 15, 5.73};
+        tempSouth = new double[]{49, 15, 1.14};
+        tempEast = new double[]{-123, -0, -4.98};
+        tempWest = new double[]{-123, -0, -15.74};
+        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_4);
-        sw01_4 = createMapData("SW01_4", tempData, tempBearing, tempBitmapDescriptor);
+        sw01_4 = createMapData("SW01_4", tempData, tempBitmapDescriptor);
+
+        // SW03 Floor 1
+        tempNorth = new double[]{49, 15, 2.45};
+        tempSouth = new double[]{49, 14, 57.90};
+        tempEast = new double[]{-123, -0, -4.28};
+        tempWest = new double[]{-123, -0, -14.95};
+        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
+        tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw03_1);
+        sw03_1 = createMapData("SW03_1", tempData, tempBitmapDescriptor);
+
+        // SW03 Floor 2
+        tempNorth = new double[]{49, 15, 2.56};
+        tempSouth = new double[]{49, 14, 58.02};
+        tempEast = new double[]{-123, -0, -4.28};
+        tempWest = new double[]{-123, -0, -14.94};
+        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
+        tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw03_2);
+        sw03_2 = createMapData("SW03_2", tempData, tempBitmapDescriptor);
     }
 
     private void initializeMapFabOcls() {
@@ -239,6 +249,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                             }
                         }
                         if (item.getItemId() == R.id.outdoor_sw03) {
+                            if (currentMapData == nextMapData) {
+                                centerMapTo(sw01_1);
+                            } else {
+                                mapOverlay.remove(); // remove the current map
+                                addOverlay(nextMapData); // add the next map
+                                centerMapTo(sw01_1); // pan to next map
+                                currentMapData = nextMapData; // set the new current map
+                            }
                         }
 
                         if (item.getItemId() == R.id.indoor) {
@@ -271,6 +289,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         }
                         if (item.getItemId() == R.id.indoor_sw01_4) {
                             nextMapData = sw01_4;
+                            if (currentMapData == nextMapData) {
+                                centerMapTo(nextMapData);
+                            } else {
+                                moveTo(nextMapData);
+                            }
+                        }
+                        if(item.getItemId() == R.id.indoor_sw03_1) {
+                            nextMapData = sw03_1;
+                            if (currentMapData == nextMapData) {
+                                centerMapTo(nextMapData);
+                            } else {
+                                moveTo(nextMapData);
+                            }
+                        }
+                        if(item.getItemId() == R.id.indoor_sw03_2) {
+                            nextMapData = sw03_2;
                             if (currentMapData == nextMapData) {
                                 centerMapTo(nextMapData);
                             } else {
@@ -311,9 +345,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         double seconds = (inDegreesMinutesSeconds[2] / 3600);
         return degrees + minutes + seconds;
     }
-    private MapData createMapData(String name, double[][] tempData, float tempBearing, BitmapDescriptor tempBitmapDescriptor) {
+    private MapData createMapData(String name, double[][] tempData, BitmapDescriptor tempBitmapDescriptor) {
         float tempZoom = getMapZoom(new LatLngBounds(new LatLng(toDegrees(tempData[0]), toDegrees(tempData[1])), new LatLng(toDegrees(tempData[2]), toDegrees(tempData[3]))));
-        return new MapData(name, tempData, tempBearing, tempBitmapDescriptor, tempZoom);
+        return new MapData(name, tempData, tempBitmapDescriptor, tempZoom);
     }
     private float getMapZoom(LatLngBounds bounds) {
         CameraPosition tempCameraPosition = googleMap.getCameraPosition();
@@ -323,7 +357,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return zoom;
     }
     private void addOverlay(MapData mapData) {
-        mapOverlay = googleMap.addGroundOverlay(new GroundOverlayOptions().image(mapData.getBitmapDescriptor()).positionFromBounds(mapData.getBounds()).bearing(mapData.getBearing()));
+        float tempBearing;
+        switch(mapData.getName().split("_")[0]) {
+            case "SW01":
+                tempBearing = 90.4f;
+                break;
+            case "SW03":
+                tempBearing = 0.3f;
+                break;
+            default:
+                tempBearing = 90f;
+                break;
+        }
+        mapOverlay = googleMap.addGroundOverlay(new GroundOverlayOptions().image(mapData.getBitmapDescriptor()).positionFromBounds(mapData.getBounds()).bearing(tempBearing));
     }
     private void centerMapTo(MapData mapData) {
         googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
@@ -379,7 +425,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 receiveLocation(locationResult);
             }
         };
-        locationRequest = LocationRequest.create().setInterval(5000).setFastestInterval(500).setPriority(Priority.PRIORITY_HIGH_ACCURACY).setMaxWaitTime(100);
+        locationRequest = new LocationRequest.Builder(4000).setMinUpdateIntervalMillis(2000).setMinUpdateDistanceMeters(1).setPriority(Priority.PRIORITY_HIGH_ACCURACY).build();
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
         builder.addLocationRequest(locationRequest);
         locationSettingsRequest = builder.build();
