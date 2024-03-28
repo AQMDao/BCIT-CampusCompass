@@ -71,9 +71,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         String value = "";
 
-        //Cursor testing = db.rawQuery("SELECT * FROM " + "Building", null);
-
-
         //define columns want to retrieve
         String[] projection = {"degrees", "minutes", "seconds"};
 

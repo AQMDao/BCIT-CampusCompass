@@ -40,6 +40,7 @@ public class HomeFragment extends Fragment {
 
     }
 
+    //test function to see if we can get values from databases
     public String getValuetoDebug(String campusName) {
         DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
         try {
