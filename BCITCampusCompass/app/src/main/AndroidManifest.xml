@@ -5,7 +5,6 @@
     <!-- Enable access to user's location -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <!-- Enable access to the internet for... not really sure yet... -->
     <uses-permission android:name="android.permission.INTERNET"/>

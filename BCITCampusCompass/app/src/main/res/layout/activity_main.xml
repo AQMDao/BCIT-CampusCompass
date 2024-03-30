@@ -6,8 +6,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:id="@+id/main_cl">
+    tools:context=".MainActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toTopOf="@id/main_bnv"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="56dp"
+        android:id="@+id/main_fl"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/main_bnv"
@@ -18,58 +27,71 @@
         app:menu="@menu/bottom_navigation_menu"
         tools:layout_editor_absoluteX="45dp" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/expand_fab"
-        style="@style/Widget.Design.FloatingActionButton"
-        android:contentDescription="@null"
-        android:src="@drawable/rounded_add_24"
-        app:fabSize="normal"
-        app:backgroundTint="@color/design_default_color_secondary"
-        app:layout_constraintBottom_toTopOf="@id/main_bnv"
-        app:layout_constraintEnd_toEndOf="@id/main_bnv"
-        android:layout_margin="15dp"
-        app:maxImageSize="50dp"
-        />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/expand_fab"
+            style="@style/Widget.Design.FloatingActionButton"
+            android:contentDescription="@null"
+            android:src="@drawable/rounded_add_24"
+            app:fabSize="normal"
+            app:backgroundTint="@color/design_default_color_secondary"
+            app:layout_constraintBottom_toTopOf="@id/main_bnv"
+            app:layout_constraintEnd_toEndOf="@id/main_bnv"
+            android:layout_margin="15dp"
+            app:maxImageSize="50dp"
+            />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/center_map_fab"
+            style="@style/Widget.Design.FloatingActionButton"
+            android:contentDescription="@null"
+            android:src="@drawable/rounded_center_focus_strong_24"
+            app:fabSize="mini"
+            app:layout_constraintCircle="@id/expand_fab"
+            app:layout_constraintCircleAngle="0"
+            app:layout_constraintCircleRadius="90dp"
+            tools:ignore="MissingConstraints" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/focus_building_fab"
+            style="@style/Widget.Design.FloatingActionButton"
+            android:contentDescription="@null"
+            android:src="@drawable/rounded_feature_search_24"
+            app:fabSize="mini"
+            app:layout_constraintCircle="@id/expand_fab"
+            app:layout_constraintCircleAngle="330"
+            app:layout_constraintCircleRadius="90dp"
+            tools:ignore="MissingConstraints" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/toggle_location_fab"
+            style="@style/Widget.Design.FloatingActionButton"
+            android:contentDescription="@null"
+            android:src="@drawable/rounded_location_searching_24"
+            app:fabSize="mini"
+            app:layout_constraintCircle="@id/expand_fab"
+            app:layout_constraintCircleAngle="300"
+            app:layout_constraintCircleRadius="90dp"
+            tools:ignore="MissingConstraints"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/center_map_fab"
+        android:id="@+id/toggle_view_fab"
         style="@style/Widget.Design.FloatingActionButton"
         android:contentDescription="@null"
-        android:src="@drawable/rounded_center_focus_strong_24"
-        app:fabSize="mini"
-        app:layout_constraintCircle="@id/expand_fab"
-        app:layout_constraintCircleAngle="0"
-        app:layout_constraintCircleRadius="60dp"
-        tools:ignore="MissingConstraints" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/focus_building_fab"
-        style="@style/Widget.Design.FloatingActionButton"
-        android:contentDescription="@null"
-        android:src="@drawable/rounded_feature_search_24"
-        app:fabSize="mini"
-        app:layout_constraintCircle="@id/expand_fab"
-        app:layout_constraintCircleAngle="315"
-        app:layout_constraintCircleRadius="60dp"
-        tools:ignore="MissingConstraints" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/toggle_location_fab"
-        style="@style/Widget.Design.FloatingActionButton"
-        android:contentDescription="@null"
-        android:src="@drawable/rounded_location_searching_24"
+        android:src="@drawable/rounded_splitscreen_24"
         app:fabSize="mini"
         app:layout_constraintCircle="@id/expand_fab"
         app:layout_constraintCircleAngle="270"
-        app:layout_constraintCircleRadius="60dp"
+        app:layout_constraintCircleRadius="90dp"
         tools:ignore="MissingConstraints"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -27,11 +27,9 @@
 
 package org.bcit.campuscompass;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -62,10 +60,12 @@ public class MainActivity extends AppCompatActivity {
     private SettingsFragment settingsFragment;
 
     // Expand Floating Action Button
-    private boolean toggledExpandFab;
-    private boolean toggledLocationFab;
+    private boolean toggledExpandFab, toggledLocationFab, toggledViewFab;
     private View.OnClickListener expandFabOnClickListener;
 
+    public MainActivity() {
+
+    }
     /* METHODS */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +75,7 @@ public class MainActivity extends AppCompatActivity {
         initializeFragments();
         initializeExpandFab();
         toggledLocationFab = false;
-
-        makeToast(MainActivity.this, "Binding, Fragments, FABs, all initialized.");
+        toggledViewFab = false;
     }
 
     /* HELPER FUNCTIONS */
@@ -92,10 +91,10 @@ public class MainActivity extends AppCompatActivity {
 
         fragmentManager = getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.add(R.id.main_cl, homeFragment);
-        fragmentTransaction.add(R.id.main_cl,profileFragment);
-        fragmentTransaction.add(R.id.main_cl,mapFragment);
-        fragmentTransaction.add(R.id.main_cl,settingsFragment);
+        fragmentTransaction.add(R.id.main_fl, homeFragment);
+        fragmentTransaction.add(R.id.main_fl,profileFragment);
+        fragmentTransaction.add(R.id.main_fl,mapFragment);
+        fragmentTransaction.add(R.id.main_fl,settingsFragment);
         fragmentTransaction.hide(profileFragment);
         fragmentTransaction.hide(mapFragment);
         fragmentTransaction.hide(settingsFragment);
@@ -158,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
         activityMainBinding.centerMapFab.hide();
         activityMainBinding.focusBuildingFab.hide();
         activityMainBinding.toggleLocationFab.hide();
+        activityMainBinding.toggleViewFab.hide();
     }
     private void closeExpandFab() {
         hideAllFab();
@@ -174,17 +174,19 @@ public class MainActivity extends AppCompatActivity {
             activityMainBinding.centerMapFab.show();
             activityMainBinding.focusBuildingFab.show();
             activityMainBinding.toggleLocationFab.show();
+            activityMainBinding.toggleViewFab.show();
+
         }
         if(fragment instanceof SettingsFragment) {
         }
         activityMainBinding.expandFab.animate().rotation(225f);
         toggledExpandFab = true;
     }
-    public FloatingActionButton[] getMapFabButtons() {
-        return new FloatingActionButton[] {activityMainBinding.centerMapFab, activityMainBinding.focusBuildingFab, activityMainBinding.toggleLocationFab};
+    public FloatingActionButton[] getMapButtons() {
+        return new FloatingActionButton[] {activityMainBinding.centerMapFab, activityMainBinding.focusBuildingFab, activityMainBinding.toggleLocationFab, activityMainBinding.toggleViewFab};
     }
 
-    public void updateLocationFab() {
+    public void toggleLocationFab() {
         if (toggledLocationFab) {
             toggledLocationFab = false;
             activityMainBinding.toggleLocationFab.setImageResource(R.drawable.rounded_location_searching_24);
@@ -194,10 +196,21 @@ public class MainActivity extends AppCompatActivity {
             activityMainBinding.toggleLocationFab.setImageResource(R.drawable.rounded_my_location_24);
         }
     }
+
+    public void toggledViewFab() {
+        if (toggledViewFab) {
+            toggledViewFab = false;
+            activityMainBinding.toggleViewFab.setImageResource(R.drawable.rounded_splitscreen_24);
+        }
+        else {
+            toggledViewFab = true;
+            activityMainBinding.toggleViewFab.setImageResource(R.drawable.rounded_map_24);
+        }
+    }
     public boolean getLocationFabState() {
         return toggledLocationFab;
     }
-    private void makeToast(Context context, CharSequence message) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+    public boolean getViewFabState() {
+        return toggledViewFab;
     }
 }
