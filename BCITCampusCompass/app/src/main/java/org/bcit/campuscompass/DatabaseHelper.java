@@ -21,7 +21,7 @@ import java.io.OutputStream;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private Context context;
-    private static final String DATABASE_NAME = "building_floor_rooms_db.db";
+    private static final String DATABASE_NAME = "building_floor_rooms_onetable.db";
     private static final int DATABASE_VERSION = 2;
 
     private static final String TABLE_NAME = "Rooms";
@@ -67,19 +67,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READWRITE);
     }
 
-    public String getRoomDimensions(){
+    //this function takes the name of the location to return its dimensions by accessing the existing database
+    //name of the location takes the following form: [building number]_floor_[floor number}_[N, S, E, W]
+    //Example: inputting SW1_floor_1_N as the location string will return the dimensions
+    public double[][] getLocationDimensions(String location){
         SQLiteDatabase db = this.getReadableDatabase();
-        String value = "";
+
+        double[][] dimensions = {
+                {0.0, 0.0, 0.0},
+                {0.0, 0.0, 0.0},
+                {0.0, 0.0, 0.0},
+                {0.0, 0.0, 0.0}
+        };
 
         //define columns want to retrieve
         String[] projection = {"degrees", "minutes", "seconds"};
 
         //define selection criteria
-        String selection = "dimension_id = ?";
-        String[] selectionArgs = {"1"};
+        String selection = "name = ?";
+        String[] selectionArgs = {location};
 
         //Execute the query
-        Cursor cursor = db.query("Dimensions", projection, selection, selectionArgs, null, null, null);
+        Cursor cursor = db.query("locations", projection, selection, selectionArgs, null, null, null);
 
         //check if the cursor has data
         if(cursor != null && cursor.moveToFirst()) {
@@ -87,7 +96,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             @SuppressLint("Range") double minutes = cursor.getDouble(cursor.getColumnIndex("minutes"));
             @SuppressLint("Range") double seconds = cursor.getDouble(cursor.getColumnIndex("seconds"));
 
-            value = degrees + " " + minutes + " " + seconds;
+            dimensions = new double[]{degrees, minutes, seconds};
 
             cursor.close();
         }
@@ -95,6 +104,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         //close database connection
         db.close();
 
-        return value;
+        return dimensions;
     }
 }

@@ -8,12 +8,8 @@ import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.maps.model.LatLng;
-
-import org.bcit.campuscompass.DatabaseHelper;
-import org.bcit.campuscompass.R;
-
 import java.io.IOException;
+import java.util.Arrays;
 
 public class HomeFragment extends Fragment {
 
@@ -32,8 +28,11 @@ public class HomeFragment extends Fragment {
         //debug message
         //String debugMessage = "Latitude and Longitude: " + getValuetoDebug("Burnaby Campus");
 
+        double[] test = {5.3, 3.2, 1.6};
+
         // set debug message to the textview
-        debugTextView.setText(getValuetoDebug("lol"));
+        //debugTextView.setText(getValuetoDebug());
+        debugTextView.setText(Arrays.toString(getValuetoDebug()));
         debugTextView.setVisibility(View.VISIBLE);
 
         return rootView;
@@ -41,7 +40,7 @@ public class HomeFragment extends Fragment {
     }
 
     //test function to see if we can get values from databases
-    public String getValuetoDebug(String campusName) {
+    public double[] getValuetoDebug() {
         DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
         try {
             dbHelper.copyDatabase();
@@ -50,7 +49,7 @@ public class HomeFragment extends Fragment {
             e.printStackTrace();
         }
 
-        return dbHelper.getRoomDimensions();
+        return dbHelper.getLocationDimensions("SW1_floor_1_N");
     }
 
     // hi michael here
