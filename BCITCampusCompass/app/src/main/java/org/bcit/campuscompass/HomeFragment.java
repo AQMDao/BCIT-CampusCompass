@@ -32,7 +32,7 @@ public class HomeFragment extends Fragment {
 
         // set debug message to the textview
         //debugTextView.setText(getValuetoDebug());
-        debugTextView.setText(Arrays.toString(getValuetoDebug()));
+        debugTextView.setText(Arrays.deepToString(getValuetoDebug()));
         debugTextView.setVisibility(View.VISIBLE);
 
         return rootView;
@@ -40,7 +40,7 @@ public class HomeFragment extends Fragment {
     }
 
     //test function to see if we can get values from databases
-    public double[] getValuetoDebug() {
+    public double[][] getValuetoDebug() {
         DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
         try {
             dbHelper.copyDatabase();
@@ -48,8 +48,8 @@ public class HomeFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return dbHelper.getLocationDimensions("SW1_floor_1_N");
+        //return new double[]{1.0,2.0,3.0};
+        return dbHelper.getLocationDimensions("SW1_floor_1");
     }
 
     // hi michael here

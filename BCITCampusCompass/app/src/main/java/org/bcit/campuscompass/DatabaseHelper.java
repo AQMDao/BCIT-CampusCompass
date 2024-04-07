@@ -22,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private Context context;
     private static final String DATABASE_NAME = "building_floor_rooms_onetable.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 1;
 
     private static final String TABLE_NAME = "Rooms";
     private static final String COLUMN_ID = "room_id";
@@ -68,16 +68,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     //this function takes the name of the location to return its dimensions by accessing the existing database
-    //name of the location takes the following form: [building number]_floor_[floor number}_[N, S, E, W]
-    //Example: inputting SW1_floor_1_N as the location string will return the dimensions
+    //name of the location takes the following form: [building number]_floor_[floor number}
+    //Example: getLocationDimensions(SW1_floor_1)
+    //for campus: [campus city]_campus
+    //Example: getLocationDimensions(burnaby_campus)
+    //returns dimensions in a double array, where each element is the dimensions in S,W,E,N order
     public double[][] getLocationDimensions(String location){
-        SQLiteDatabase db = this.getReadableDatabase();
 
         double[][] dimensions = {
-                {0.0, 0.0, 0.0},
-                {0.0, 0.0, 0.0},
-                {0.0, 0.0, 0.0},
-                {0.0, 0.0, 0.0}
+                {0.0, 0.0, 0.0}, //south
+                {0.0, 0.0, 0.0}, //west
+                {0.0, 0.0, 0.0}, //north
+                {0.0, 0.0, 0.0}  //east
         };
 
         //define columns want to retrieve
@@ -85,10 +87,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         //define selection criteria
         String selection = "name = ?";
-        String[] selectionArgs = {location};
+
+        dimensions[0] = execQuery(selection, projection, location, "_S");
+        dimensions[1] = execQuery(selection, projection, location, "_W");
+        dimensions[2] = execQuery(selection, projection, location, "_N");
+        dimensions[3] = execQuery(selection, projection, location, "_E");
+
+        return dimensions;
+    }
+
+    public double[] pinpointRoom(String room_name) {
+        double[] roomDimension = {0.0, 0.0, 0.0};
+
+        //define columns want to retrieve
+        String[] projection = {"degrees", "minutes", "seconds"};
+
+        //define selection criteria
+        String selection = "name = ?";
+
+        //note: room dimensions do not require N,S,E,W so direction is left as ""
+        roomDimension = execQuery(selection, projection, room_name, "");
+
+        return roomDimension;
+    }
+
+    private double[] execQuery(String selection, String[] projection, String location, String direction){
+        SQLiteDatabase db = this.getReadableDatabase();
+        double[] dimensions = null;
+        String[] selectionArgs = {location + direction};
 
         //Execute the query
-        Cursor cursor = db.query("locations", projection, selection, selectionArgs, null, null, null);
+        Cursor cursor = db.query("locations_1", projection, selection, selectionArgs, null, null, null);
 
         //check if the cursor has data
         if(cursor != null && cursor.moveToFirst()) {
