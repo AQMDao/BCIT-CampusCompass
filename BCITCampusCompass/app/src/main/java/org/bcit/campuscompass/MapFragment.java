@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,6 +46,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.Arrays;
 import java.util.Map;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
@@ -146,68 +148,40 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     /* HELPER FUNCTIONS */
     private void initializeAllMapData() {
         // Burnaby Campus
-        double[] tempNorth = {49, 15, 10.42};
-        double[] tempSouth = {49, 14, 36.89};
-        double[] tempEast = {-122, -59, -28.33};
-        double[] tempWest = {-123, -0, -47.94};
+        DatabaseHelper db = new DatabaseHelper(requireContext());
+        double[][] Data = db.getLocationDimensions("burnaby_campus");
         BitmapDescriptor tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.burnaby_campus);
-        double[][] tempData = {tempSouth, tempWest, tempNorth, tempEast};
-        burnabyCampus = createMapData("Burnaby Campus", tempData, tempBitmapDescriptor);
+        burnabyCampus = createMapData("Burnaby Campus", Data, tempBitmapDescriptor);
 
         // SW01 Floor 1
-        tempNorth = new double[]{49, 15, 5.58};
-        tempSouth = new double[]{49, 15, 1.00};
-        tempEast = new double[]{-123, -0, -4.80};
-        tempWest = new double[]{-123, -0, -15.55};
+        Data = db.getLocationDimensions("SW1_floor_1");
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_1);
-        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
-        sw01_1 = createMapData("SW01_1", tempData, tempBitmapDescriptor);
+        sw01_1 = createMapData("SW01_1", Data, tempBitmapDescriptor);
 
         // SW01 Floor 2
-        tempNorth = new double[]{49, 15, 5.30};
-        tempSouth = new double[]{49, 15, 0.95};
-        tempEast = new double[]{-123, -0, -5.13};
-        tempWest = new double[]{-123, -0, -15.27};
-        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
-        // access from dat
+        Data = db.getLocationDimensions("SW1_floor_2");
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_2);
-        sw01_2 = createMapData("SW01_2", tempData, tempBitmapDescriptor);
+        sw01_2 = createMapData("SW01_2", Data, tempBitmapDescriptor);
 
         // SW01 Floor 3
-        tempNorth = new double[]{49, 15, 5.62};
-        tempSouth = new double[]{49, 15, 1.08};
-        tempEast = new double[]{-123, -0, -5.09};
-        tempWest = new double[]{-123, -0, -15.83};
-        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
+        Data = db.getLocationDimensions("SW1_floor_3");
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_3);
-        sw01_3 = createMapData("SW01_3", tempData, tempBitmapDescriptor);
+        sw01_3 = createMapData("SW01_3", Data, tempBitmapDescriptor);
 
         // SW01 Floor 4
-        tempNorth = new double[]{49, 15, 5.73};
-        tempSouth = new double[]{49, 15, 1.14};
-        tempEast = new double[]{-123, -0, -4.98};
-        tempWest = new double[]{-123, -0, -15.74};
-        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
+        Data = db.getLocationDimensions("SW1_floor_4");
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw01_4);
-        sw01_4 = createMapData("SW01_4", tempData, tempBitmapDescriptor);
+        sw01_4 = createMapData("SW01_4", Data, tempBitmapDescriptor);
 
         // SW03 Floor 1
-        tempNorth = new double[]{49, 15, 2.45};
-        tempSouth = new double[]{49, 14, 57.90};
-        tempEast = new double[]{-123, -0, -4.28};
-        tempWest = new double[]{-123, -0, -14.95};
-        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
+        Data = db.getLocationDimensions("SW3_floor_1");
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw03_1);
-        sw03_1 = createMapData("SW03_1", tempData, tempBitmapDescriptor);
+        sw03_1 = createMapData("SW03_1", Data, tempBitmapDescriptor);
 
         // SW03 Floor 2
-        tempNorth = new double[]{49, 15, 2.56};
-        tempSouth = new double[]{49, 14, 58.02};
-        tempEast = new double[]{-123, -0, -4.28};
-        tempWest = new double[]{-123, -0, -14.94};
-        tempData = new double[][]{tempSouth, tempWest, tempNorth, tempEast};
+        Data = db.getLocationDimensions("SW3_floor_2");
         tempBitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.sw03_2);
-        sw03_2 = createMapData("SW03_2", tempData, tempBitmapDescriptor);
+        sw03_2 = createMapData("SW03_2", Data, tempBitmapDescriptor);
     }
 
     private void initializeMapFabOcls() {
