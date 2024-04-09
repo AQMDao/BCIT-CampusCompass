@@ -12,11 +12,11 @@ import com.google.android.gms.maps.model.LatLngBounds;
 public class MapData {
 
     /* MEMBERS */
-    private String mapName;
-    private double[][] mapData; // {south, west, north, east} in dms format via Google Earth Pro
-    private float mapBearing;
-    private BitmapDescriptor mapBitmapDescriptor;
-    private float mapZoomLevel;
+    private final String mapName;
+    private final double[][] mapData; // {south, west, north, east, bearing} in dms format via Google Earth Pro
+    private final float mapBearing;
+    private final BitmapDescriptor mapBitmapDescriptor;
+    private final float mapZoomLevel;
 
     /* METHODS */
     public MapData(String name, double[][] data, BitmapDescriptor bitmapDescriptor, float zoom) {
@@ -24,13 +24,13 @@ public class MapData {
         this.mapData = data;
         this.mapBitmapDescriptor = bitmapDescriptor;
         this.mapZoomLevel = zoom;
+        this.mapBearing = (float) data[0][3];
     }
 
     public String getName() {
         return mapName;
     }
     public LatLngBounds getBounds() {
-        double[] test = mapData[0];
         return new LatLngBounds(new LatLng(toDegrees(mapData[0]), toDegrees(mapData[1])), new LatLng(toDegrees(mapData[2]), toDegrees(mapData[3])));
     }
     public float getBearing() {

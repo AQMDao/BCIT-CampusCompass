@@ -7,6 +7,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+
     /*
         The Secrets Gradle Plugin for Android reads secrets, including the API key, from a
         properties file not checked into a version control system. The plugin then exposes those
@@ -67,6 +68,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.fragment:fragment:1.6.2")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -76,6 +78,8 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     // Location Services
     implementation("com.google.android.gms:play-services-location:21.2.0")
+    // Maps SDK For Utility
+    implementation("com.google.maps.android:android-maps-utils:3.8.2")
 }
 
 secrets {
