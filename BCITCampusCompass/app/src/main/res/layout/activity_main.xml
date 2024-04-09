@@ -52,7 +52,7 @@
             app:fabSize="mini"
             app:layout_constraintCircle="@id/expand_fab"
             app:layout_constraintCircleAngle="0"
-            app:layout_constraintCircleRadius="90dp"
+            app:layout_constraintCircleRadius="60dp"
             tools:ignore="MissingConstraints" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -64,8 +64,8 @@
             android:src="@drawable/rounded_feature_search_24"
             app:fabSize="mini"
             app:layout_constraintCircle="@id/expand_fab"
-            app:layout_constraintCircleAngle="330"
-            app:layout_constraintCircleRadius="90dp"
+            app:layout_constraintCircleAngle="315"
+            app:layout_constraintCircleRadius="60dp"
             tools:ignore="MissingConstraints" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -77,8 +77,8 @@
             android:src="@drawable/rounded_location_searching_24"
             app:fabSize="mini"
             app:layout_constraintCircle="@id/expand_fab"
-            app:layout_constraintCircleAngle="300"
-            app:layout_constraintCircleRadius="90dp"
+            app:layout_constraintCircleAngle="270"
+            app:layout_constraintCircleRadius="60dp"
             tools:ignore="MissingConstraints"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -90,8 +90,21 @@
         android:src="@drawable/rounded_splitscreen_24"
         app:fabSize="mini"
         app:layout_constraintCircle="@id/expand_fab"
-        app:layout_constraintCircleAngle="270"
-        app:layout_constraintCircleRadius="90dp"
+        app:layout_constraintCircleAngle="292.5"
+        app:layout_constraintCircleRadius="95dp"
+        tools:ignore="MissingConstraints"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/toggle_room_fab"
+        style="@style/Widget.Design.FloatingActionButton"
+        android:contentDescription="@null"
+        android:src="@drawable/rounded_explore_off_24"
+        app:fabSize="mini"
+        app:layout_constraintCircle="@id/expand_fab"
+        app:layout_constraintCircleAngle="337.5"
+        app:layout_constraintCircleRadius="95dp"
         tools:ignore="MissingConstraints"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
